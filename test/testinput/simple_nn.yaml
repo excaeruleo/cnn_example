@@ -1,0 +1,194 @@
+---
+# YAML 1.2 # boost/archive
+n_layers: 3
+layers:
+  count: 1  
+# one mid layer
+# input connectivity
+  item0:
+    count: 2
+    item0:
+      count: 16
+      item0: 1
+      item1: 2
+      item2: 3
+      item3: 4
+      item4: 1
+      item5: 2
+      item6: 3
+      item7: 4
+      item8: 1
+      item9: 2
+      item10: 3
+      item11: 4
+      item12: 1
+      item13: 2
+      item14: 3
+      item15: 4
+# output connectivity
+    item1:  
+      count: 16
+      item0: 1
+      item1: 1
+      item2: 1
+      item3: 1
+      item4: 2
+      item5: 2
+      item6: 2
+      item7: 2
+      item8: 3
+      item9: 3
+      item10: 3
+      item11: 3
+      item12: 4
+      item13: 4
+      item14: 4
+      item15: 4
+input_layer_type: numerical
+input_layer_values: 
+  count: 4
+  item0: 0 
+  item1: 0
+  item2: 1
+  item3: 0
+output_layer_type: numerical
+output_layer_values:
+  count: 4
+  item0: 0 
+  item1: 0
+  item2: 0
+  item3: 0
+
+nn: 
+	n_layers: 3
+	layers:
+		count: 3  
+		item0:
+			layer_type: 0
+			input_connectivity:
+				count: 0
+			output_connectivity:
+				count: 0
+		item1:
+			layer_type: 1
+			input_connectivity:
+				count: 16
+				item0: 1
+				item1: 2
+				item2: 3
+				item3: 4
+				item4: 1
+				item5: 2
+				item6: 3
+				item7: 4
+				item8: 1
+				item9: 2
+				item10: 3
+				item11: 4
+				item12: 1
+				item13: 2
+				item14: 3
+				item15: 4
+			output_connectivity:
+				count: 16
+				item0: 1
+				item1: 1
+				item2: 1
+				item3: 1
+				item4: 2
+				item5: 2
+				item6: 2
+				item7: 2
+				item8: 3
+				item9: 3
+				item10: 3
+				item11: 3
+				item12: 4
+				item13: 4
+				item14: 4
+				item15: 4
+  item2:
+    layer_type: 2
+    input_connectivity:
+      count: 0
+    output_connectivity:
+      count: 0
+	input_layer_type: numerical
+	input_layer_values: 
+		count: 4
+		item0: 0 
+		item1: 0
+		item2: 1
+		item3: 0
+	output_layer_type: numerical
+	output_layer_values:
+		count: 4
+		item0: 0 
+		item1: 0
+		item2: 1
+		item3: 0
+
+#prev_layer_connectivity: [1 2 3 4 1 2 3 4 1 2 3 4 1 2 3 4 ]
+#next_layer_connectivity: [1 1 1 1 2 2 2 2 3 3 3 3 4 4 4 4 ]
+salute: "Hello, World!"
+num_people: 12
+#n_layers: 3
+square:
+  first: 4.20000000000000000e+01
+  second: 8.40000000000000000e+01
+tallest:
+  initialized: true
+  value: 1.22999999999999998e+00
+pets:
+  count: 4
+  item0: "Bob"
+  item1: "Rex"
+  item2: "Tom"
+  item3: "Jerry"
+trio:
+  elems:
+    count: 3
+    item0: 1.10000000000000009e+00
+    item1: 2.20000000000000018e+00
+    item2: 3.29999999999999982e+00
+nicknames:
+  count: 5
+  item0:
+    count: 4
+    item0: "Aaron"
+    item1: "Erin"
+    item2: "Ronnie"
+    item3: "Ron"
+  item1:
+    count: 3
+    item0: "Adam"
+    item1: "Edie"
+    item2: "Ade"
+  item2:
+    count: 3
+    item0: "Albert"
+    item1: "Bert"
+    item2: "Al"
+  item3:
+    count: 4
+    item0: "Alfred"
+    item1: "Freddy"
+    item2: "Al"
+    item3: "Fred"
+  item4:
+    count: 4
+    item0: "Wilfred"
+    item1: "Will"
+    item2: "Willie"
+    item3: "Fred"
+bag:
+  count: 3
+  item0: 1.00000000000000000e+00
+  item1: 2.00000000000000000e+00
+  item2: 3.00000000000000000e+00
+C:
+  x: 1.10000000000000009e+00
+  y: -2
+  z: 3
+...
+# vim: set sw=2 ts=2 sts=2 tw=80 et nowrap

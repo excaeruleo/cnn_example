@@ -1,0 +1,6 @@
+build/
+src/boost-archive-yaml/test/test_istream
+src/boost-archive-yaml/test/test_istream.o
+src/boost-archive-yaml/test/test_ostream
+src/boost-archive-yaml/test/test_ostream.o
+test/note.txt

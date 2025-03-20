@@ -1,0 +1,4 @@
+test_ostream.o: test_ostream.cpp
+test_ostream: test_ostream.o
+test_istream.o: test_istream.cpp
+test_istream: test_istream.o

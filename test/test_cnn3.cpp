@@ -15,6 +15,7 @@
 
 #include "typedef.hpp"
 #include "connection.hpp"
+#include "functions.hpp"
 #include "neuron.hpp"
 #include "layer.hpp"
 #include "utils.hpp"
@@ -26,7 +27,7 @@
 class simple_neural_network : public cnn::NeuralNetwork{
 
 public:
-  bool initialize();
+  bool initialize() override;
 
 };
 
@@ -60,6 +61,9 @@ bool simple_neural_network::initialize(){
       weights.w[it{1,j,k}] = cnn::Connector(1,j,k);
     }
   }
+
+  // MSE loss
+  cost_function = cnn::mse_loss;
 
   std::cout << "input: " << layers[0];
   std::cout << "output: " << layers[1];

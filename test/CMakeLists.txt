@@ -100,6 +100,11 @@ foreach( testsourcefile ${SOURCE_FILES} )
     target_link_libraries( ${testname} ${CNNLIB_LINK_FLAG} ${OpenCV_LIBS} ${X_LINK_FLAG} ${BOOST_LINK_FLAG} )
 endforeach( testsourcefile ${SOURCE_FILES} )
 
+# ensure test_cnn2 is run *before* test_cnn2_import due to dependence on the
+# trained.yml file produced by test_cnn2 used by test_cnn2_import
+set_tests_properties(test_cnn2 PROPERTIES FIXTURES_SETUP trained_yml)
+set_tests_properties(test_cnn2_import PROPERTIES FIXTURES_REQUIRED trained_yml)
+
 install(TARGETS ${cnn_testexec} DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/../bin)
 
 #file(COPY testinput DESTINATION ${CMAKE_CURRENT_BINARY_DIR})

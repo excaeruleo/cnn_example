@@ -2,18 +2,21 @@ cmake_minimum_required(VERSION 3.5)
 
 project(cnn-example)
 
-# Set default build type to Release if not specified
-if(NOT CMAKE_BUILD_TYPE)
-    set(CMAKE_BUILD_TYPE "Release" CACHE STRING "Choose the type of build (Debug or Release)" FORCE)
+# determine if multi-config generator
+get_property(EXCCNN_MULTI_CONFIG GLOBAL PROPERTY GENERATOR_IS_MULTI_CONFIG)
+if(EXCCNN_MULTI_CONFIG)
+    message(STATUS "Build config: Multi")
+else()
+    # set default build type to Debug if not specified for single-config
+    if(NOT CMAKE_BUILD_TYPE)
+        set(CMAKE_BUILD_TYPE Debug)
+    endif()
+    message(STATUS "Build config: ${CMAKE_BUILD_TYPE}")
 endif()
 
-# Set compile flags for Debug and Release modes
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17 -Wall -Wextra -frtti")
-set(CMAKE_CXX_FLAGS_DEBUG "-g -O0")
-set(CMAKE_CXX_FLAGS_RELEASE "-g -O3")
-
-# Print the build type
-message(STATUS "Build type: ${CMAKE_BUILD_TYPE}")
+# C++ standard requirements
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 # Debug option
 option(USE_DEBUG "Enter debug mode" OFF)
@@ -32,6 +35,15 @@ find_package(ZLIB REQUIRED)
 
 MESSAGE(STATUS "Include dirs ${OpenCV_INCLUDE_DIRS}")
 MESSAGE(STATUS "LINK LIBRARIES ${OpenCV_LIBS}")
+
+# set compile options
+if(MSVC)
+    add_compile_options(/W4)
+else()
+    # TODO: consider if -Wextra and -frtti are necessary
+    # TODO: may also want -g during Release for debug info
+    add_compile_options(-Wall $<$<CONFIG:Release>:-O3>)
+endif()
 
 set(CMAKE_INSTALL_PREFIX ${PROJECT_SOURCE_DIR})
 

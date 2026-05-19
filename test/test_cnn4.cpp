@@ -17,6 +17,7 @@
 
 #include "typedef.hpp"
 #include "connection.hpp"
+#include "functions.hpp"
 #include "neuron.hpp"
 #include "layer.hpp"
 #include "utils.hpp"
@@ -25,15 +26,13 @@
 
 #define NVP(a) BOOST_SERIALIZATION_NVP(a) 
 
-class simple_neural_network : public cnn::NeuralNetwork{
+class simple_neural_network : public cnn::NeuralNetwork {
 
 public:
-  bool initialize();
-
+  bool initialize() override;
 };
 
-bool simple_neural_network::initialize(){
-
+bool simple_neural_network::initialize() {
   n_layers = 4;
   int n_input = 4;
   int n_output = 4;
@@ -80,9 +79,12 @@ bool simple_neural_network::initialize(){
     }
   }
 
-  //std::cout << "input: " << layers[0];
-  //std::cout << "output: " << layers[1];
-  //std::cout << "weights: " << weights;
+  // MSE loss
+  cost_function = cnn::mse_loss;
+
+  std::cout << "input: " << layers[0];
+  std::cout << "output: " << layers[1];
+  std::cout << "weights: " << weights;
 
   return true;
 

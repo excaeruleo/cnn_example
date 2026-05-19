@@ -27,6 +27,9 @@ else()
     message(STATUS "Debug mode: OFF")
 endif()
 
+# enable testing in top level
+include(CTest)
+
 # Rest of your existing configuration
 SET("OpenCV_DIR" "/usr/include/opencv4")
 find_package(Boost REQUIRED COMPONENTS serialization system filesystem iostreams)

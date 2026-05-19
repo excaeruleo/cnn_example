@@ -1,0 +1,6 @@
+# text files should be LF by default
+* text=auto
+# batch files need CRLF
+*.bat text eol=crlf
+# exclude Boost.YML-archive from Linguist stats
+src/boost-archive-yaml/** linguist-vendored

@@ -17,6 +17,7 @@
 
 #include "typedef.hpp"
 #include "connection.hpp"
+#include "functions.hpp"
 #include "neuron.hpp"
 #include "layer.hpp"
 #include "utils.hpp"
@@ -25,14 +26,13 @@
 
 #define NVP(a) BOOST_SERIALIZATION_NVP(a) 
 
-class simple_neural_network : public cnn::NeuralNetwork{
+class simple_neural_network : public cnn::NeuralNetwork {
 
 public:
-  bool initialize();
-
+  bool initialize() override;
 };
 
-bool simple_neural_network::initialize(){
+bool simple_neural_network::initialize() {
 
 	//n_layers = 2;
 
@@ -53,15 +53,24 @@ bool simple_neural_network::initialize(){
   //expected[2] = 0.;
   //expected[3] = 0.;
 
-  //std::cout << "input: " << layers[0];
-  //std::cout << "output: " << layers[1];
-  //std::cout << "weights: " << weights;
+  // MSE loss
+  // FIXME: nn, optimizer, etc. serialization, e.g. anything involving function
+  // pointers, is lossy. so we need to set function pointers manually to ensure
+  // "de-serialized" models don't crash if they aren't default initialized. in
+  // this case we know test_cnn2.cpp is already using mse_loss and defaulted
+  // optimizer objects, but in general this is not a root cause fix.
+  cost_function = cnn::mse_loss;
+
+  // should have been reconstituted already
+  std::cout << "input: " << layers[0];
+  std::cout << "output: " << layers[1];
+  std::cout << "weights: " << weights;
 
 	return true;
 
 }
 
-int main(){
+int main() {
 
 	simple_neural_network nn;
 	{
@@ -71,6 +80,8 @@ int main(){
 			>> NVP(nn)
 		;
 	}
+  // see initialize() FIXME above
+  nn.initialize();
   nn.update();
   std::cout << "weights: " << nn.weights;
 

@@ -1,6 +1,11 @@
-build/
+# ignore build directories
+/build*
+# ignore Boost.YML-archive binaries
 src/boost-archive-yaml/test/test_istream
 src/boost-archive-yaml/test/test_istream.o
 src/boost-archive-yaml/test/test_ostream
 src/boost-archive-yaml/test/test_ostream.o
+# ignore note file (?)
 test/note.txt
+# ignore Vim swap files
+*.swp

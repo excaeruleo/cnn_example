@@ -1,10 +1,10 @@
-#include <../include/layer.hpp>
+#include "layer.hpp"
 
-int main(void) {
+int main() {
 
   int n_input = 10;
 
-	cnn::Layer input_layer = cnn::Layer(n_input); 
+	cnn::Layer input_layer = cnn::Layer(n_input);
   for(int i = 0; i < n_input; i ++)
 		input_layer[i] = 0.;
   input_layer[3] = 1.;

@@ -24,7 +24,7 @@
 #include "weights.hpp"
 #include "nn.hpp"
 
-#define NVP(a) BOOST_SERIALIZATION_NVP(a) 
+#define NVP(a) BOOST_SERIALIZATION_NVP(a)
 
 class simple_neural_network : public cnn::NeuralNetwork {
 
@@ -79,7 +79,7 @@ int main(){
   nn.update();
 
 	{
-		std::ofstream ofs{"trained.yml"};
+		std::ofstream ofs{"trained2.yml"};
 		boost::archive::yml_oarchive yoa{ofs};
 		yoa
 			<< NVP(nn)

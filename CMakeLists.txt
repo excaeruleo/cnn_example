@@ -43,10 +43,7 @@ if(CMAKE_VERSION VERSION_GREATER_EQUAL 3.30)
     cmake_policy(PUSH)
     cmake_policy(SET CMP0167 OLD)
 endif()
-find_package(
-    Boost 1.71 REQUIRED
-    COMPONENTS filesystem iostreams serialization system
-)
+find_package(Boost 1.71 REQUIRED COMPONENTS iostreams serialization)
 if(CMAKE_VERSION VERSION_GREATER_EQUAL 3.30)
     cmake_policy(POP)
 endif()
@@ -57,7 +54,7 @@ add_library(Boost::YML-archive IMPORTED INTERFACE)
 # TODO: move to third_party or vendor directory to separate from project source
 target_include_directories(
     Boost::YML-archive INTERFACE
-    "${PROJECT_SOURCE_DIR}/src/boost-archive-yaml}"
+    "${PROJECT_SOURCE_DIR}/src/boost-archive-yaml"
 )
 
 # find OpenCV

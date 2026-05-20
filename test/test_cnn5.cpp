@@ -17,6 +17,7 @@
 
 #include "typedef.hpp"
 #include "connection.hpp"
+#include "functions.hpp"
 #include "neuron.hpp"
 #include "layer.hpp"
 #include "utils.hpp"
@@ -28,16 +29,15 @@
 
 #define NVP(a) BOOST_SERIALIZATION_NVP(a) 
 
-class simple_neural_network : public cnn::NeuralNetwork{
+class simple_neural_network : public cnn::NeuralNetwork {
 
 public:
-  bool initialize();
+  bool initialize() override;
   bool reset_input(const std::vector<std::vector<cnn::real_type>> & input, const int index);
   bool reset_expected(const int & index);
-
 };
 
-bool simple_neural_network::initialize(){
+bool simple_neural_network::initialize() {
 
   n_layers = 3;
   int n_input = 784; /* for the 784 pixels in 18x18 picture */
@@ -70,9 +70,12 @@ bool simple_neural_network::initialize(){
     }
   }
 
-  //std::cout << "input: " << layers[0];
-  //std::cout << "output: " << layers[1];
-  //std::cout << "weights: " << weights;
+  // cross-entropy classifier loss
+  cost_function = cnn::cross_entropy_loss;
+
+  std::cout << "input: " << layers[0];
+  std::cout << "output: " << layers[1];
+  std::cout << "weights: " << weights;
 
   return true;
 
@@ -98,15 +101,15 @@ simple_neural_network::reset_expected(const int & index){
 }
 
 int main(){
-
-	std::string filename = "testinput/mnist/mnist_train_1000.txt"; // Replace with your file name
+	// image and label gzip file names
+	std::string imageFileName = "testinput/t10k-images-idx3-ubyte.gz";
+	std::string labelFileName = "testinput/t10k-labels-idx1-ubyte.gz";
 	std::vector<std::vector<cnn::real_type>> pixelValues;
 	std::vector<int> labels;
 
 	try {
-			// Read the MNIST file
-			cnn::readMNISTFile(filename, pixelValues, labels);
-
+			// Read the first 1000 MNIST image and label files
+			cnn::readMNISTBinaryFilesSubset(imageFileName, labelFileName, pixelValues, labels, 1000);
 			// Output confirmation
 			std::cout << "Successfully read " << pixelValues.size() << " images with "
 								<< pixelValues[0].size() << " pixels each and " << labels.size() 

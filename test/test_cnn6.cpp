@@ -29,7 +29,7 @@
 #include "functions.hpp"
 #include "optimizer.hpp"
 
-#define NVP(a) BOOST_SERIALIZATION_NVP(a) 
+#define NVP(a) BOOST_SERIALIZATION_NVP(a)
 
 class simple_neural_network : public cnn::NeuralNetwork{
 
@@ -41,7 +41,7 @@ public:
   int get_output_label() const {
     // Get the output layer values
     const auto& output = this->get_output();
-    
+
     // Find the index of the maximum value in the output layer
     // This index corresponds to the predicted digit (0-9)
     auto max_it = std::max_element(output.begin(), output.end());
@@ -61,7 +61,7 @@ bool simple_neural_network::initialize() {
         layer.layer_name = "layer_" + std::to_string(i);
         layers.push_back(layer);
     }
-    
+
     expected = cnn::Layer(layer_sizes.back());
 
     // Initialize weights between layers using Adam
@@ -69,7 +69,7 @@ bool simple_neural_network::initialize() {
     for (size_t l = 1; l < layer_sizes.size(); ++l) {
         for (int j = 0; j < layer_sizes[l]; ++j) {
             for (int k = 0; k < layer_sizes[l-1]; ++k) {
-                weights.w[it{static_cast<int>(l), j, k}] = 
+                weights.w[it{static_cast<int>(l), j, k}] =
                     cnn::Connector(l, j, k);  // Pass layer sizes
             }
         }
@@ -84,7 +84,7 @@ bool simple_neural_network::initialize() {
 }
 
 /* reset the input to the image file pixel value */
-bool 
+bool
 simple_neural_network::reset_input(const std::vector<std::vector<cnn::real_type>> & input, const int index){
 #ifdef DEBUG
 	std::cout << layers[0].size() << " " << input[index].size();
@@ -124,17 +124,17 @@ int main(int argc, char* argv[]) {
     try {
         if(mode == "--train"){
             datafilename = "test/testinput/train-images-idx3-ubyte.gz";
-            labelfilename = "test/testinput/train-labels-idx1-ubyte.gz"; 
+            labelfilename = "test/testinput/train-labels-idx1-ubyte.gz";
             // Read the MNIST file
             cnn::readMNISTBinaryFilesSubset(datafilename, labelfilename, pixelValues, labels, n_images);
         } else if (mode == "--resume"){
             datafilename = "test/testinput/train-images-idx3-ubyte.gz";
-            labelfilename = "test/testinput/train-labels-idx1-ubyte.gz"; 
+            labelfilename = "test/testinput/train-labels-idx1-ubyte.gz";
             // Read the MNIST file
             cnn::readMNISTBinaryFilesSubset(datafilename, labelfilename, pixelValues, labels, n_images);
         } else if (mode == "--apply"){
             datafilename = "test/testinput/t10k-images-idx3-ubyte.gz";
-            labelfilename = "test/testinput/t10k-labels-idx1-ubyte.gz"; 
+            labelfilename = "test/testinput/t10k-labels-idx1-ubyte.gz";
             // Read the MNIST file
             cnn::readMNISTBinaryFilesSubset(datafilename, labelfilename, pixelValues, labels, n_images);
         } else {
@@ -144,7 +144,7 @@ int main(int argc, char* argv[]) {
 
         // Output confirmation
         std::cout << "Successfully read " << pixelValues.size() << " images with "
-                  << pixelValues[0].size() << " pixels each and " << labels.size() 
+                  << pixelValues[0].size() << " pixels each and " << labels.size()
                   << " labels." << std::endl;
 #ifdef DEBUG
         // Debug output for first digit
@@ -196,7 +196,7 @@ int main(int argc, char* argv[]) {
         if (mode == "--train") {
             nn.initialize();
         } else {
-            std::ifstream ifs{"trained.yml"};
+            std::ifstream ifs{"trained_mnist.yml"};
             boost::archive::yml_iarchive yia{ifs};
             yia >> NVP(nn);
         }
@@ -216,11 +216,11 @@ int main(int argc, char* argv[]) {
         }
 
         // Save final model
-        std::ofstream ofs{"trained.yml"};
+        std::ofstream ofs{"trained_mnist.yml"};
         boost::archive::yml_oarchive yoa{ofs};
         yoa << NVP(nn);
     } else if (mode == "--apply") {
-        std::ifstream ifs{"trained.yml"};
+        std::ifstream ifs{"trained_mnist.yml"};
         boost::archive::yml_iarchive yia{ifs};
         yia >> NVP(nn);
 #ifndef DEBUG
@@ -239,15 +239,15 @@ int main(int argc, char* argv[]) {
             nn.update_forward();
             int predicted_label = nn.get_output_label();
             int true_label = labels[i];
-            
+
             // Update confusion matrix
             confusion_matrix[true_label * 10 + predicted_label]++;
-            
+
             if (predicted_label == true_label) {
                 correct_predictions++;
             }
-            
-            std::cout << "Image #" << i << " predicted: " << predicted_label 
+
+            std::cout << "Image #" << i << " predicted: " << predicted_label
                       << " actual: " << true_label << std::endl;
         }
 
@@ -263,7 +263,7 @@ int main(int argc, char* argv[]) {
         std::cout << "   ";
         for (int i = 0; i < 10; i++) std::cout << std::setw(4) << i;
         std::cout << " <- Predicted\n";
-        
+
         for (int i = 0; i < 10; i++) {
             std::cout << std::setw(2) << i << " ";
             for (int j = 0; j < 10; j++) {

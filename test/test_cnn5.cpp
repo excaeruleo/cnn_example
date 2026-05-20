@@ -27,7 +27,7 @@
 #include "functions.hpp"
 #include "optimizer.hpp"
 
-#define NVP(a) BOOST_SERIALIZATION_NVP(a) 
+#define NVP(a) BOOST_SERIALIZATION_NVP(a)
 
 class simple_neural_network : public cnn::NeuralNetwork {
 
@@ -44,17 +44,17 @@ bool simple_neural_network::initialize() {
   int n_output = 10; /* for the 10 digits, 0,1,...9 */
   int n_hidden = 100; /* hidden layer size */
 
-  cnn::Layer input_layer = cnn::Layer(n_input); 
+  cnn::Layer input_layer = cnn::Layer(n_input);
   input_layer.layer_name="input layer";
 
-  cnn::Layer hidden_layer = cnn::Layer(n_hidden); 
+  cnn::Layer hidden_layer = cnn::Layer(n_hidden);
   hidden_layer.layer_name="hidden layer";
 
   cnn::Layer output_layer = cnn::Layer(n_output);
   output_layer.layer_name="output layer";
 
   layers = {input_layer, hidden_layer, output_layer};
-  expected = cnn::Layer(n_output); 
+  expected = cnn::Layer(n_output);
 
   using it = weight_index_type;
 
@@ -82,7 +82,7 @@ bool simple_neural_network::initialize() {
 }
 
 /* reset the input to the image file pixel value */
-bool 
+bool
 simple_neural_network::reset_input(const std::vector<std::vector<cnn::real_type>> & input, const int index){
 	std::cout << layers[0].size() << " " << input[index].size();
 	assert(this->layers[0].size() == input[index].size());
@@ -112,7 +112,7 @@ int main(){
 			cnn::readMNISTBinaryFilesSubset(imageFileName, labelFileName, pixelValues, labels, 1000);
 			// Output confirmation
 			std::cout << "Successfully read " << pixelValues.size() << " images with "
-								<< pixelValues[0].size() << " pixels each and " << labels.size() 
+								<< pixelValues[0].size() << " pixels each and " << labels.size()
 								<< " labels." << std::endl;
 
 			// Optional: Print first image's pixels and label for verification
@@ -142,7 +142,7 @@ int main(){
 	}
 
   {
-    std::ofstream ofs{"trained.yml"};
+    std::ofstream ofs{"trained5.yml"};
     boost::archive::yml_oarchive yoa{ofs};
     yoa
       << NVP(nn)

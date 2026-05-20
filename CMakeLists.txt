@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.5)
+cmake_minimum_required(VERSION 3.21)
 
 project(cnn-example)
 
@@ -19,6 +19,8 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 # Debug option
+# FIXME: DEBUG should have a project prefix, e.g. EXCCNN_. we can also have
+# this be an INTERFACE target instead with this macro definition
 option(USE_DEBUG "Enter debug mode" OFF)
 if(USE_DEBUG)
     add_definitions(-DDEBUG)
@@ -30,11 +32,40 @@ endif()
 # enable testing in top level
 include(CTest)
 
-# Rest of your existing configuration
-SET("OpenCV_DIR" "/usr/include/opencv4")
-find_package(Boost REQUIRED COMPONENTS serialization system filesystem iostreams)
-find_package(OpenCV REQUIRED)
-find_package(ZLIB REQUIRED)
+# find Boost
+# note: compatibility with older versions of Boost
+if(CMAKE_VERSION VERSION_GREATER_EQUAL 3.30)
+    cmake_policy(PUSH)
+    cmake_policy(SET CMP0167 OLD)
+endif()
+find_package(
+    Boost 1.71 REQUIRED
+    COMPONENTS filesystem iostreams serialization system
+)
+if(CMAKE_VERSION VERSION_GREATER_EQUAL 3.30)
+    cmake_policy(POP)
+endif()
+message(STATUS "Boost version: ${Boost_VERSION}")
+
+# find OpenCV
+# TODO: user should set this themselves
+# SET("OpenCV_DIR" "/usr/include/opencv4")
+# note: we don't actually use it much here so not required
+find_package(OpenCV 4.2)
+if(OpenCV_FOUND)
+    message(STATUS "OpenCV version: ${OpenCV_VERSION}")
+else()
+    message(STATUS "OpenCV version: None")
+endif()
+
+# find zlib
+# note: currently only used for reading MNIST pixel data from gzip files
+find_package(ZLIB 1.2 REQUIRED)
+if(ZLIB_FOUND)
+    message(STATUS "zlib version: ${ZLIB_VERSION}")
+else()
+    message(STATUS "zlib version: None")
+endif()
 
 MESSAGE(STATUS "Include dirs ${OpenCV_INCLUDE_DIRS}")
 MESSAGE(STATUS "LINK LIBRARIES ${OpenCV_LIBS}")

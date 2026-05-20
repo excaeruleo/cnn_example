@@ -61,8 +61,6 @@ target_include_directories(
 )
 
 # find OpenCV
-# TODO: user should set this themselves
-# SET("OpenCV_DIR" "/usr/include/opencv4")
 # note: we don't actually use it much here so not required
 find_package(OpenCV 4.2)
 if(OpenCV_FOUND)
@@ -96,19 +94,6 @@ else()
     # TODO: may also want -g during Release for debug info
     add_compile_options(-Wall $<$<CONFIG:Release>:-O3>)
 endif()
-
-set(CMAKE_INSTALL_PREFIX ${PROJECT_SOURCE_DIR})
-
-# TODO: these aren't used anywhere it seems
-# set(DIVISIBLE_INSTALL_INCLUDE_DIR ${PROJECT_SOURCE_DIR}/include)
-# set(DIVISIBLE_INSTALL_BIN_DIR ${PROJECT_SOURCE_DIR}/bin)
-# set(DIVISIBLE_INSTALL_LIB_DIR ${PROJECT_SOURCE_DIR}/lib)
-
-set(YAML_HEADERS_DIR ${PROJECT_SOURCE_DIR}/src/boost-archive-yaml)
-set(CNN_HEADERS_DIR  ${PROJECT_SOURCE_DIR}/include)
-
-# include_directories(${DIVISIBLE_INSTALL_INCLUDE_DIR})
-# include_directories(${DIVISION_HEADERS_DIR})
 
 add_subdirectory(src)
 add_subdirectory(test)

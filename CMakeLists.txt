@@ -52,6 +52,14 @@ if(CMAKE_VERSION VERSION_GREATER_EQUAL 3.30)
 endif()
 message(STATUS "Boost version: ${Boost_VERSION}")
 
+# create Boost.YML-archive IMPORTED target
+add_library(Boost::YML-archive IMPORTED INTERFACE)
+# TODO: move to third_party or vendor directory to separate from project source
+target_include_directories(
+    Boost::YML-archive INTERFACE
+    "${PROJECT_SOURCE_DIR}/src/boost-archive-yaml}"
+)
+
 # find OpenCV
 # TODO: user should set this themselves
 # SET("OpenCV_DIR" "/usr/include/opencv4")
@@ -63,14 +71,6 @@ else()
     message(STATUS "OpenCV version: None")
 endif()
 
-# create Boost.YML-archive IMPORTED target
-add_library(Boost::YML-archive IMPORTED INTERFACE)
-# TODO: move to third_party or vendor directory to separate from project source
-target_include_directories(
-    Boost::YML-archive INTERFACE
-    "${PROJECT_SOURCE_DIR}/src/boost-archive-yaml}"
-)
-
 # find zlib
 # note: currently only used for reading MNIST pixel data from gzip files
 find_package(ZLIB 1.2 REQUIRED)
@@ -80,8 +80,13 @@ else()
     message(STATUS "zlib version: None")
 endif()
 
-MESSAGE(STATUS "Include dirs ${OpenCV_INCLUDE_DIRS}")
-MESSAGE(STATUS "LINK LIBRARIES ${OpenCV_LIBS}")
+# find X11
+find_package(X11)
+if(X11_FOUND)
+    message(STATUS "X version: 11")
+else()
+    message(STATUS "X version: None")
+endif()
 
 # set compile options
 if(MSVC)

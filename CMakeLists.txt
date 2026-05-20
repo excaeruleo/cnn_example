@@ -14,10 +14,6 @@ else()
     message(STATUS "Build config: ${CMAKE_BUILD_TYPE}")
 endif()
 
-# C++ standard requirements
-set(CMAKE_CXX_STANDARD 17)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
-
 # Debug option
 # FIXME: DEBUG should have a project prefix, e.g. EXCCNN_. we can also have
 # this be an INTERFACE target instead with this macro definition
@@ -29,8 +25,17 @@ else()
     message(STATUS "Debug mode: OFF")
 endif()
 
+# C++ standard requirements
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
 # enable testing in top level
 include(CTest)
+
+# ensure all build outputs go in top-level directory
+set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR})
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR})
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR})
 
 # find Boost
 # note: compatibility with older versions of Boost
@@ -58,6 +63,14 @@ else()
     message(STATUS "OpenCV version: None")
 endif()
 
+# create Boost.YML-archive IMPORTED target
+add_library(Boost::YML-archive IMPORTED INTERFACE)
+# TODO: move to third_party or vendor directory to separate from project source
+target_include_directories(
+    Boost::YML-archive INTERFACE
+    "${PROJECT_SOURCE_DIR}/src/boost-archive-yaml}"
+)
+
 # find zlib
 # note: currently only used for reading MNIST pixel data from gzip files
 find_package(ZLIB 1.2 REQUIRED)
@@ -81,15 +94,16 @@ endif()
 
 set(CMAKE_INSTALL_PREFIX ${PROJECT_SOURCE_DIR})
 
-set(DIVISIBLE_INSTALL_INCLUDE_DIR ${PROJECT_SOURCE_DIR}/include)
-set(DIVISIBLE_INSTALL_BIN_DIR ${PROJECT_SOURCE_DIR}/bin)
-set(DIVISIBLE_INSTALL_LIB_DIR ${PROJECT_SOURCE_DIR}/lib)
+# TODO: these aren't used anywhere it seems
+# set(DIVISIBLE_INSTALL_INCLUDE_DIR ${PROJECT_SOURCE_DIR}/include)
+# set(DIVISIBLE_INSTALL_BIN_DIR ${PROJECT_SOURCE_DIR}/bin)
+# set(DIVISIBLE_INSTALL_LIB_DIR ${PROJECT_SOURCE_DIR}/lib)
 
 set(YAML_HEADERS_DIR ${PROJECT_SOURCE_DIR}/src/boost-archive-yaml)
 set(CNN_HEADERS_DIR  ${PROJECT_SOURCE_DIR}/include)
 
-include_directories(${DIVISIBLE_INSTALL_INCLUDE_DIR})
-include_directories(${DIVISION_HEADERS_DIR})
+# include_directories(${DIVISIBLE_INSTALL_INCLUDE_DIR})
+# include_directories(${DIVISION_HEADERS_DIR})
 
 add_subdirectory(src)
 add_subdirectory(test)

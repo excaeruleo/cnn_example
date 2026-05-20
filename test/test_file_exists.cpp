@@ -1,5 +1,6 @@
-#include <iostream>
+#include <cstdlib>
 #include <fstream>
+#include <iostream>
 #include <string>
 #include <vector>
 
@@ -13,23 +14,14 @@ bool check_If_File_Exists(const std::string & filename) {
 }
 
 int main(int argc, char *argv[]) {
+  // number of found files
+  int n_found = 0;
+  // iterate through argv, printing and tracking whether found or not
   for (int i = 1; i < argc; i++) {
-    std::cout << check_If_File_Exists(argv[i]) << std::endl;
+    auto found = check_If_File_Exists(argv[i]);
+    std::cout << "found " << argv[i] << ": " << found << std::endl;
+    n_found += found;
   }
-  /*
-  std::ifstream file;
-  std::string workingPath = argv[1];
-  std::string bogusPath = argv[2];
-  std::string paths[2] = {workingPath, bogusPath};
-  for (auto i : paths) {
-    file.open(i);
-    if (file) {
-      std::cout << i << " exists." << std::endl;
-    }
-    else {
-      std::cout << i << " does not exist." << std::endl;
-    }
-  }
-  */
-  return 0;
+  // success if n_found == argc - 1
+  return (n_found == argc - 1) ? EXIT_SUCCESS : EXIT_FAILURE;
 }

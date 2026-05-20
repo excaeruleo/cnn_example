@@ -24,7 +24,7 @@
 #include "weights.hpp"
 #include "nn.hpp"
 
-#define NVP(a) BOOST_SERIALIZATION_NVP(a) 
+#define NVP(a) BOOST_SERIALIZATION_NVP(a)
 
 class simple_neural_network : public cnn::NeuralNetwork {
 
@@ -38,18 +38,18 @@ bool simple_neural_network::initialize() {
   int n_output = 4;
   int n_hidden = 10;
 
-  cnn::Layer input_layer = cnn::Layer(n_input); 
+  cnn::Layer input_layer = cnn::Layer(n_input);
   input_layer.layer_name="input layer";
   for(int i = 0; i < n_input; i ++)
     input_layer[i] = 0.;
   input_layer[3] = 1.;
 
-  cnn::Layer hidden_layer = cnn::Layer(n_hidden); 
+  cnn::Layer hidden_layer = cnn::Layer(n_hidden);
   hidden_layer.layer_name="hidden layer";
   for(int i = 0; i < n_hidden; i ++)
     hidden_layer[i] = 0.;
 
-  cnn::Layer hidden_layer1 = cnn::Layer(n_hidden); 
+  cnn::Layer hidden_layer1 = cnn::Layer(n_hidden);
   hidden_layer1.layer_name="hidden layer 1";
   for(int i = 0; i < n_hidden; i ++)
     hidden_layer1[i] = 0.;
@@ -60,7 +60,7 @@ bool simple_neural_network::initialize() {
     output_layer[i] = 0.;
 
   layers = {input_layer, hidden_layer, hidden_layer1, output_layer};
-  expected = cnn::Layer(n_output); 
+  expected = cnn::Layer(n_output);
   for(int i = 0; i < n_output; i ++)
     expected[i] = 0.;
   expected[3] = 1.;
@@ -98,7 +98,7 @@ int main(){
   std::cout << nn.cost() << std::endl;
 
   {
-    std::ofstream ofs{"trained.yml"};
+    std::ofstream ofs{"trained4.yml"};
     boost::archive::yml_oarchive yoa{ofs};
     yoa
       << NVP(nn)

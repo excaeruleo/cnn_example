@@ -9,3 +9,6 @@ src/boost-archive-yaml/test/test_ostream.o
 test/note.txt
 # ignore Vim swap files
 *.swp
+# ignore VS and VS Code config directories
+.vs
+.vscode

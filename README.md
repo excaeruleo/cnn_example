@@ -20,6 +20,10 @@ For Windows:
 
 <!-- Debug config by using Debug instead -->
 
+```shell
+cmake -S . -B build_win64 -A x64 && cmake --build build_win64 --config Release -j
+```
+
 [CTest] tests can be run to validate the build.
 
 [CTest]: https://cmake.org/cmake/help/latest/manual/ctest.1.html

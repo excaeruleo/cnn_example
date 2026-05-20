@@ -10,6 +10,8 @@ target_link_libraries(
     cnnlib PUBLIC
     Boost::headers Boost::serialization Boost::YML-archive
 )
+# use d postfix for Debug builds
+set_target_properties(cnnlib PROPERTIES DEBUG_POSTFIX d)
 
 # on Windows we need DLLs to be picked up in the correct build directory, which
 # in our case, should be PROJECT_BINARY_DIR. we make the DLL copying a one-time

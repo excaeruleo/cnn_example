@@ -73,9 +73,10 @@ bool simple_neural_network::initialize() {
   // cross-entropy classifier loss
   cost_function = cnn::cross_entropy_loss;
 
-  std::cout << "input: " << layers[0];
-  std::cout << "output: " << layers[1];
-  std::cout << "weights: " << weights;
+  // note: commented out since this gets very verbose
+  // std::cout << "input: " << layers[0];
+  // std::cout << "output: " << layers[1];
+  // std::cout << "weights: " << weights;
 
   return true;
 

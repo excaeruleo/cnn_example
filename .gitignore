@@ -12,3 +12,5 @@ test/note.txt
 # ignore VS and VS Code config directories
 .vs
 .vscode
+# ignore any trained*.yml files created by manual test runs
+trained*.yml

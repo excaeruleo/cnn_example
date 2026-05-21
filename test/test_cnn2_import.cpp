@@ -74,7 +74,7 @@ int main() {
 
 	simple_neural_network nn;
 	{
-		std::ifstream ifs{"trained.yml"};
+		std::ifstream ifs{"trained2.yml"};
 		boost::archive::yml_iarchive yia{ifs};
 		yia
 			>> NVP(nn)
@@ -86,7 +86,7 @@ int main() {
   std::cout << "weights: " << nn.weights;
 
 	{
-		std::ofstream ofs{"trained.yml"};
+		std::ofstream ofs{"trained2.yml"};
 		boost::archive::yml_oarchive yoa{ofs};
 		yoa
 			<< NVP(nn)

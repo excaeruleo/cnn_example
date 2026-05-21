@@ -14,8 +14,8 @@
 #include <boost/numeric/ublas/io.hpp>
 #include <vector>
 
-#include <stdio.h> 
-#include <stdlib.h> 
+#include <stdio.h>
+#include <stdlib.h>
 #include <cassert>
 
 #include "typedef.hpp"
@@ -40,10 +40,10 @@ public:
   bool operator == (Connection const & con_) const { return con_.weights.size() == weights.size() ; }
 
   Connection(){
-     
+
   }
-  
-  Connection(const std::vector<cnn::Connector> & _weights){ 
+
+  Connection(const std::vector<cnn::Connector> & _weights){
      weights = _weights;
   }
 
@@ -54,13 +54,16 @@ public:
       stream << con.weights[i];
     return stream;
   }
-  void update_forward(const real_type & input) {
+  void update_forward(const real_type & /*input*/) {
 
   }
-  void update_backward(const real_type & previous, const real_type & expected, const real_type & next){
+  void update_backward(
+    const real_type & /*previous*/,
+    const real_type & /*expected*/,
+    const real_type & /*next*/) {
 
   }
-  
+
 private:
 };
 

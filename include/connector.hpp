@@ -14,8 +14,8 @@
 #include <boost/numeric/ublas/io.hpp>
 #include <vector>
 
-#include <stdio.h> 
-#include <stdlib.h> 
+#include <stdio.h>
+#include <stdlib.h>
 #include <cassert>
 #include <cmath>
 
@@ -79,18 +79,18 @@ public:
   }
 
   // Modify the constructors to include initialization type
-  Connector(): layer(1), init_type(InitType::KAIMING) { 
+  Connector(): layer(1), init_type(InitType::KAIMING) {
      default_initialize();
   }
 
-  Connector(int layer_, int input_index_, int output_index_, 
-           int fan_in = 784, int fan_out = 256, 
+  Connector(int layer_, int input_index_, int output_index_,
+           int fan_in = 784, int fan_out = 256,
            InitType init = InitType::KAIMING):
-      layer(layer_), 
-      input_index(input_index_), 
+      layer(layer_),
+      input_index(input_index_),
       output_index(output_index_),
-      init_type(init) 
-  { 
+      init_type(init)
+  {
       default_initialize();
       switch(init_type) {
           // for relu filter
@@ -104,8 +104,8 @@ public:
           // for orthogonal filter
           case InitType::ORTHOGONAL:
               // Initialize orthogonal matrix if not already done
-              if (orthogonal_matrix.empty() || 
-                  orthogonal_matrix.size() != fan_out || 
+              if (orthogonal_matrix.empty() ||
+                  orthogonal_matrix.size() != fan_out ||
                   orthogonal_matrix[0].size() != fan_in) {
                   orthogonal_matrix = orthogonal_init(fan_out, fan_in);
                   orthogonal_matrix_index = 0;
@@ -118,13 +118,13 @@ public:
 
   void update_bias(real_type gradient){
     // Gradient clipping to prevent exploding gradient
-    const real_type clip_gradient = 0.01;
+    const real_type clip_gradient = 0.01f;
     gradient = std::min(std::max(gradient, -clip_gradient), clip_gradient);
 
     bias -= gradient * learning_rate;
 
     // Clip bias values to prevent them from growing too large
-    const real_type clip_bias = 0.01;
+    const real_type clip_bias = 0.01f;
     bias = std::min(std::max(bias, -clip_bias), clip_bias);
   }
 
@@ -145,7 +145,7 @@ public:
       old_gradient = gradient;
     else{
       if(gradient * old_gradient > 0)
-        learning_rate += momentum*std::abs(gradient + old_gradient)/2.;
+        learning_rate += momentum*std::abs(gradient + old_gradient) / 2;
     }
     learning_rate /= (1 + decay*iter);
     iter ++;
@@ -169,20 +169,20 @@ public:
   friend std::ostream& operator<< (std::ostream& stream, const Connector & n) {
 
     std::cout << "(" << n.layer << "," << n.input_index << "," << n.output_index <<  "): "
-              << n.weight << ' ' << n.bias << ' ' 
+              << n.weight << ' ' << n.bias << ' '
               << n.learning_rate << ' ' << n.momentum  << std::endl;
 
     return stream;
   }
-  
+
 private:
   void default_initialize(){
     // Default to Kaiming initialization
     weight = kaiming_uniform_init(784);
     bias = 0.;
-    learning_rate = 0.1;
-    momentum = 0.01;
-    decay = 0.001; // reduce the learning rate by half after 1000 iterations
+    learning_rate = 0.1f;
+    momentum = 0.01f;
+    decay = 0.001f; // reduce the learning rate by half after 1000 iterations
     //momentum = 0.0;
     //decay = 0.0;
     old_gradient = -1000;

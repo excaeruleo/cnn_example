@@ -1,17 +1,40 @@
 #include "mnist.hpp"
-#include <fstream>
-#include <vector>
-#include <stdexcept>
-#include <iostream>
-#include <sstream>
-#include <zlib.h> // For gzFile and gzopen
-#include <random>
-#include <algorithm>
 
-namespace cnn{
+#include <algorithm>
+#include <cstdint>
+#include <fstream>
+#include <numeric>
+#include <random>
+#include <sstream>
+#include <stdexcept>
+#include <vector>
+
+#ifdef _MSC_VER
+#include <stdlib.h>  // for _byteswap_ulong
+#endif  // _MSC_VER
+
+#include <zlib.h>    // for gzFile and gzopen
+
+namespace cnn {
+
+namespace {
+
+// swap bytes of an unsigned 32-bit integer
+auto bswap32(std::uint32_t v) noexcept
+{
+// MSVC provides _byteswap_ulong()
+#if defined(_MSC_VER)
+	return _byteswap_ulong(v);
+// GCC/Clang provide __builtin_bswap32
+#else
+	return __builtin_bswap32(v);
+#endif  // !defined(_MSC_VER)
+}
+
+}  // namespace
 	// Subroutine to read MNIST file and store values in vectors
-	void readMNISTFile(const std::string& filename, 
-										 std::vector<std::vector<real_type>>& pixelValues, 
+	void readMNISTFile(const std::string& filename,
+										 std::vector<std::vector<real_type>>& pixelValues,
 										 std::vector<int>& labels) {
 			// Open the input file
 			std::ifstream inputFile(filename);
@@ -56,9 +79,9 @@ namespace cnn{
 	}
 
 	// New function to read binary files
-	void readMNISTBinaryFiles(const std::string& imagesFilename, 
-							  const std::string& labelsFilename, 
-							  std::vector<std::vector<real_type>>& pixelValues, 
+	void readMNISTBinaryFiles(const std::string& imagesFilename,
+							  const std::string& labelsFilename,
+							  std::vector<std::vector<real_type>>& pixelValues,
 							  std::vector<int>& labels) {
 			// Open the image file
 			gzFile imageFile = gzopen(imagesFilename.c_str(), "rb");
@@ -80,7 +103,7 @@ namespace cnn{
 			int numberOfColumns = 0;
 
 			gzread(imageFile, &magicNumber, sizeof(magicNumber));
-			magicNumber = __builtin_bswap32(magicNumber);
+			magicNumber = bswap32(magicNumber);
 			if (magicNumber != 2051) {
 					gzclose(imageFile);
 					gzclose(labelFile);
@@ -88,20 +111,20 @@ namespace cnn{
 			}
 
 			gzread(imageFile, &numberOfImages, sizeof(numberOfImages));
-			numberOfImages = __builtin_bswap32(numberOfImages);
+			numberOfImages = bswap32(numberOfImages);
 
 			gzread(imageFile, &numberOfRows, sizeof(numberOfRows));
-			numberOfRows = __builtin_bswap32(numberOfRows);
+			numberOfRows = bswap32(numberOfRows);
 
 			gzread(imageFile, &numberOfColumns, sizeof(numberOfColumns));
-			numberOfColumns = __builtin_bswap32(numberOfColumns);
+			numberOfColumns = bswap32(numberOfColumns);
 
 			// Read the magic number and number of labels
 			int labelMagicNumber = 0;
 			int numberOfLabels = 0;
 
 			gzread(labelFile, &labelMagicNumber, sizeof(labelMagicNumber));
-			labelMagicNumber = __builtin_bswap32(labelMagicNumber);
+			labelMagicNumber = bswap32(labelMagicNumber);
 			if (labelMagicNumber != 2049) {
 					gzclose(imageFile);
 					gzclose(labelFile);
@@ -109,7 +132,7 @@ namespace cnn{
 			}
 
 			gzread(labelFile, &numberOfLabels, sizeof(numberOfLabels));
-			numberOfLabels = __builtin_bswap32(numberOfLabels);
+			numberOfLabels = bswap32(numberOfLabels);
 
 			if (numberOfImages != numberOfLabels) {
 					gzclose(imageFile);
@@ -138,9 +161,9 @@ namespace cnn{
 			gzclose(labelFile);
 	}
 
-	void readMNISTBinaryFilesSubset(const std::string& imagesFilename, 
-								   const std::string& labelsFilename, 
-								   std::vector<std::vector<real_type>>& pixelValues, 
+	void readMNISTBinaryFilesSubset(const std::string& imagesFilename,
+								   const std::string& labelsFilename,
+								   std::vector<std::vector<real_type>>& pixelValues,
 								   std::vector<int>& labels,
 								   int subsetSize,
 								   bool randomAccess) {
@@ -159,9 +182,9 @@ namespace cnn{
 
 			// Read headers
 			int magicNumber = 0, numberOfImages = 0, numberOfRows = 0, numberOfColumns = 0;
-			
+
 			gzread(imageFile, &magicNumber, sizeof(magicNumber));
-			magicNumber = __builtin_bswap32(magicNumber);
+			magicNumber = bswap32(magicNumber);
 			if (magicNumber != 2051) {
 					gzclose(imageFile);
 					gzclose(labelFile);
@@ -169,16 +192,16 @@ namespace cnn{
 			}
 
 			gzread(imageFile, &numberOfImages, sizeof(numberOfImages));
-			numberOfImages = __builtin_bswap32(numberOfImages);
+			numberOfImages = bswap32(numberOfImages);
 			gzread(imageFile, &numberOfRows, sizeof(numberOfRows));
-			numberOfRows = __builtin_bswap32(numberOfRows);
+			numberOfRows = bswap32(numberOfRows);
 			gzread(imageFile, &numberOfColumns, sizeof(numberOfColumns));
-			numberOfColumns = __builtin_bswap32(numberOfColumns);
+			numberOfColumns = bswap32(numberOfColumns);
 
 			// Read label file header
 			int labelMagicNumber = 0, numberOfLabels = 0;
 			gzread(labelFile, &labelMagicNumber, sizeof(labelMagicNumber));
-			labelMagicNumber = __builtin_bswap32(labelMagicNumber);
+			labelMagicNumber = bswap32(labelMagicNumber);
 			if (labelMagicNumber != 2049) {
 					gzclose(imageFile);
 					gzclose(labelFile);
@@ -186,7 +209,7 @@ namespace cnn{
 			}
 
 			gzread(labelFile, &numberOfLabels, sizeof(numberOfLabels));
-			numberOfLabels = __builtin_bswap32(numberOfLabels);
+			numberOfLabels = bswap32(numberOfLabels);
 
 			if (numberOfImages != numberOfLabels) {
 					gzclose(imageFile);
@@ -201,7 +224,7 @@ namespace cnn{
 					// Generate random indices
 					std::vector<int> indices(numberOfImages);
 					std::iota(indices.begin(), indices.end(), 0); // Fill with 0, 1, 2, ..., numberOfImages-1
-					
+
 					std::random_device rd;
 					std::mt19937 gen(rd());
 					std::shuffle(indices.begin(), indices.end(), gen);
@@ -221,10 +244,10 @@ namespace cnn{
 					for (int i = 0; i < subsetSize; ++i) {
 							// Seek to the correct position in the image file
 							gzseek(imageFile, 16 + indices[i] * (numberOfRows * numberOfColumns), SEEK_SET);
-							
+
 							// Read the image
 							gzread(imageFile, imageBuffer.data(), numberOfRows * numberOfColumns);
-							
+
 							// Convert and store pixel values
 							for (int j = 0; j < numberOfRows * numberOfColumns; ++j) {
 									pixelValues[i][j] = static_cast<int>(imageBuffer[j]);
@@ -243,12 +266,12 @@ namespace cnn{
 							// Read image pixels
 							std::vector<unsigned char> imageBuffer(numberOfRows * numberOfColumns);
 							gzread(imageFile, imageBuffer.data(), numberOfRows * numberOfColumns);
-							
+
 							// Convert and store pixel values
 							for (int j = 0; j < numberOfRows * numberOfColumns; ++j) {
 									pixelValues[i][j] = static_cast<real_type>(imageBuffer[j]);
 							}
-							
+
 							// Read and store label
 							unsigned char label;
 							gzread(labelFile, &label, sizeof(label));
@@ -260,4 +283,5 @@ namespace cnn{
 			gzclose(imageFile);
 			gzclose(labelFile);
 	}
-}
+
+}  // namespace cnn

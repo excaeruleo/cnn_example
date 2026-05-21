@@ -33,7 +33,7 @@ public:
 
 bool simple_neural_network::initialize(){
   n_layers = 2;
-  
+
   cnn::Layer input_layer = cnn::Layer(5);
   input_layer[0] = 0.;
   input_layer[1] = 0.;
@@ -73,15 +73,15 @@ bool simple_neural_network::initialize(){
 }
 
 int main() {
-  
+
   simple_neural_network nn;
   nn.initialize();
   nn.update();
 
   {
-    std::ofstream ofs{"trainedOne.yaml"};
+    std::ofstream ofs{"trained3.yml"};
     boost::archive::yml_oarchive yoa{ofs};
-    yoa 
+    yoa
       << NVP(nn)
     ;
   }

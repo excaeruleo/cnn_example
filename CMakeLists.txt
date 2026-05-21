@@ -64,10 +64,9 @@ endif()
 
 # create Boost.YML-archive IMPORTED target
 add_library(Boost::YML-archive IMPORTED INTERFACE)
-# TODO: move to third_party or vendor directory to separate from project source
 target_include_directories(
     Boost::YML-archive INTERFACE
-    "${PROJECT_SOURCE_DIR}/src/boost-archive-yaml"
+    "${PROJECT_SOURCE_DIR}/third_party/boost-archive-yml"
 )
 # MSVC needs iso646.h included to support alternative operator representations
 # and __INCLUDE_LEVEL__ is defined to 1 to prevent Boost.YML-archive from

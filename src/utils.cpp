@@ -1,6 +1,8 @@
 #include "utils.hpp"
 
-namespace cnn{
+#include <fstream>
+
+namespace cnn {
 
 bool check_if_file_exists(const std::string & filename) {
   std::ifstream file;
@@ -11,4 +13,4 @@ bool check_if_file_exists(const std::string & filename) {
   return false;
 }
 
-};
+}  // namespace cnn

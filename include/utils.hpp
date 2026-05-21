@@ -1,20 +1,20 @@
 #ifndef UTILS_HPP
 #define UTILS_HPP
 
-#include <iostream>
-#include <fstream>
 #include <string>
-#include <vector>
 
-namespace cnn{
+#include "exccnn/dllexport.h"
 
-bool check_if_file_exists(const std::string & filename);
+namespace cnn {
+
+EXCCNN_PUBLIC
+bool check_if_file_exists(const std::string& filename);
 
 template<typename T>
 T fprime (const T z){
   return 1.;
 }
 
-};
+}  // namespace cnn
 
-#endif
+#endif  // UTILS_HPP

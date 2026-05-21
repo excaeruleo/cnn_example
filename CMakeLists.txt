@@ -43,6 +43,12 @@ if(CMAKE_VERSION VERSION_GREATER_EQUAL 3.30)
     cmake_policy(PUSH)
     cmake_policy(SET CMP0167 OLD)
 endif()
+# on Windows require static libraries due to automatic compilation with
+# BOOST_<COMPONENT>_STATIC_LINK being used
+if(WIN32)
+    message(WARNING "Forcing linkage against static Boost libraries")
+    set(Boost_USE_STATIC_LIBS ON)
+endif()
 # TODO: need to ensure that Boost.Iostreams has been built with zlib support
 # otherwise using boost/iostreams/filter/zlib.hpp gives linker errors
 find_package(Boost 1.71 REQUIRED COMPONENTS iostreams serialization)

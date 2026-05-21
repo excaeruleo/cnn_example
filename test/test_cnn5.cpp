@@ -103,8 +103,8 @@ simple_neural_network::reset_expected(const int & index){
 
 int main(){
 	// image and label gzip file names
-	std::string imageFileName = "testinput/t10k-images-idx3-ubyte.gz";
-	std::string labelFileName = "testinput/t10k-labels-idx1-ubyte.gz";
+	std::string imageFileName = "test/testinput/t10k-images-idx3-ubyte.gz";
+	std::string labelFileName = "test/testinput/t10k-labels-idx1-ubyte.gz";
 	std::vector<std::vector<cnn::real_type>> pixelValues;
 	std::vector<int> labels;
 

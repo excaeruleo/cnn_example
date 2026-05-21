@@ -163,7 +163,7 @@ add_test(
 
 # test_fr_read_linux: test writing a screenshot of the current screen
 if(X11_FOUND)
-    exccnn_add_test(test_fr_read_linux LIBRARIES X11::X11)
+    exccnn_add_test(test_fr_read_linux LIBRARIES X11::X11 X11::Xext)
 else()
     message(STATUS "Skipping test_fr_read_linux (X11 required)")
 endif()

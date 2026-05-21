@@ -95,7 +95,8 @@ else()
 endif()
 
 # find X11
-find_package(X11)
+# note: need XShm for one of the tests which is part of the Xext library
+find_package(X11 COMPONENTS Xext)
 if(X11_FOUND)
     message(STATUS "X version: 11")
 else()

@@ -1,8 +1,7 @@
 cmake_minimum_required(VERSION ${CMAKE_MINIMUM_REQUIRED_VERSION})
 
 # cnnlib: CNN support library
-# note: currently static until we have correct symbol export on Windows
-add_library(cnnlib STATIC functions.cpp mnist.cpp utils.cpp)
+add_library(cnnlib SHARED functions.cpp mnist.cpp utils.cpp)
 target_include_directories(cnnlib PUBLIC ${PROJECT_SOURCE_DIR}/include)
 target_link_libraries(cnnlib PRIVATE ZLIB::ZLIB)
 # note: header interface is currently a mess and Boost dependency is transitive
@@ -21,6 +20,9 @@ if(WIN32)
         cnnlib_dlls
         COMMAND ${CMAKE_COMMAND} -E copy_if_different
                 $<TARGET_RUNTIME_DLLS:cnnlib> $<TARGET_FILE_DIR:cnnlib>
+        COMMENT "Copying cnnlib runtime DLLs"
+        VERBATIM
+        COMMAND_EXPAND_LISTS
     )
     add_dependencies(cnnlib cnnlib_dlls)
 endif()

@@ -37,7 +37,7 @@ class Layer{
   int                 layer_size;
   std::vector<real_type> delta; // save a copy of delta for efficient back propogation in recursive algorithm
   optimizer           layer_optimizer;
-  
+
 public:
   std::string         layer_name; // numerical, image, video, audio
 	template<class Ar>
@@ -88,7 +88,7 @@ public:
 
   // return the size of the layer: how many neurons
   cnn::int_type size(void) const {
-    return neurons.size();
+    return static_cast<int_type>(neurons.size());
   }
 
   // Get
@@ -127,7 +127,7 @@ public:
     // maybe update delta and return it to neural network for recursion?
     this->delta = delta;
     prev_delta.resize(prev.size());
-    std::fill(prev_delta.begin(), prev_delta.end(), 0.);
+    std::fill(prev_delta.begin(), prev_delta.end(), real_type{});
     for(int_type k = 1; k < prev.size(); k ++ ) {
       for(int_type j = 1; j < size(); j ++){
         prev_delta[k] +=  weights.w[it{l, j, k}].weight * delta[j];
@@ -137,7 +137,6 @@ public:
 
     // Update weights in current layer
     for (cnn::int_type j = 0; j < size(); j ++) {
-      real_type gradient = 0.0;
       for (cnn::int_type k = 0; k < prev.size(); k ++) {
         real_type gradient = delta[j]*prev[k];
 #ifdef DEBUG
@@ -150,7 +149,7 @@ public:
 #endif
       }
     }
-    
+
     return 0;
   }
 

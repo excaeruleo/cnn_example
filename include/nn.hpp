@@ -21,8 +21,8 @@
 #include <unordered_map>
 #include <algorithm>
 
-#include <stdio.h> 
-#include <stdlib.h> 
+#include <stdio.h>
+#include <stdlib.h>
 #include <cassert>
 
 #include "typedef.hpp"
@@ -93,20 +93,20 @@ public:
 
   cnn::real_type cost(void) const {
     cnn::real_type sum = 0.;
-    cnn::int_type output_layer = layers.size() - 1;
+    auto output_layer = layers.size() - 1u;
     for (cnn::int_type j = 0; j < expected.size(); j ++ )
       sum = sum + 0.5 * pow(layers[output_layer][j] - expected[j], 2);
     return sum;
   }
 
   void update_forward(void){
-    
+
 #ifdef DEBUG
 		std::cout << "input: " << layers[0];
 #endif
     //iteratively update the neural network forward from 2nd layer to last layer
     //l = 0 is first layer, l = 1 is 2nd layer
-    int_type n_layers = layers.size();
+    auto n_layers = layers.size();
     for (int_type l = 1; l < n_layers ; l++){
       layers[l].update_forward(l, layers[l-1], weights);
 #ifdef DEBUG
@@ -122,10 +122,10 @@ public:
     // Calculate delta from output layer and expected value
     std::vector<cnn::real_type> delta;
     std::vector<cnn::real_type> prev_delta;
-    int_type n_layers = layers.size();
+    auto n_layers = static_cast<int_type>(layers.size());
     int_type layer_neuron_size = layers[layers.size()-1].size();
     delta.resize(layer_neuron_size);
-    for (int j = 0; j < layer_neuron_size; j ++){
+    for (auto j = 0u; j < layer_neuron_size; j ++){
       //delta[j] = 2*(layers[1][j]-expected[j])*sigmoid(layers[1][j])*(1 - sigmoid(layers[1][j]));
       delta[j] = (layers[n_layers-1][j]-expected[j]);
 #ifdef DEBUG
@@ -173,8 +173,8 @@ public:
     return layers.back().values();
   }
 
-  void reset_learning_parameters(const real_type learning_rate = 0.1, 
-                                 const real_type momentum = 0.01, 
+  void reset_learning_parameters(const real_type learning_rate = 0.1,
+                                 const real_type momentum = 0.01,
                                  const real_type decay = 0.001) {
         // Reset all weights' learning parameters
         for (auto& weight_pair : weights.w) {
@@ -204,7 +204,7 @@ public:
         if (weights.w.empty()) {
             return 0.0;
         }
-        
+
         real_type sum_lr = 0.0;
         for (const auto& weight_pair : weights.w) {
             sum_lr += weight_pair.second.learning_rate;
@@ -218,15 +218,15 @@ public:
                       const real_type decay = 0.001) {
         // Reset learning parameters
         reset_learning_parameters(learning_rate, momentum, decay);
-        
+
         // Clear layer values
         for (auto& layer : layers) {
-            std::fill(layer.values().begin(), layer.values().end(), 0.0);
+            std::fill(layer.values().begin(), layer.values().end(), real_type{});
         }
-        
+
         // Reset expected values
-        std::fill(expected.values().begin(), expected.values().end(), 0.0);
-        
+        std::fill(expected.values().begin(), expected.values().end(), real_type{});
+
 #ifdef DEBUG
         std::cout << "Network reset completed" << std::endl;
 #endif
@@ -235,17 +235,17 @@ public:
     // Optional: Add a method to reset weights to their initial values
     void reinitialize_weights() {
         // Store the current network architecture
-        std::vector<int> layer_sizes;
+        std::vector<int_type> layer_sizes;
         for (const auto& layer : layers) {
             layer_sizes.push_back(layer.size());
         }
-        
+
         // Reinitialize weights using the stored architecture
         weights.w.clear();
-        for (size_t l = 1; l < layer_sizes.size(); ++l) {
-            for (int j = 0; j < layer_sizes[l]; ++j) {
-                for (int k = 0; k < layer_sizes[l-1]; ++k) {
-                    weights.w[weight_index_type{static_cast<unsigned int>(l), j, k}] = 
+        for (int_type l = 1; l < layer_sizes.size(); ++l) {
+            for (int_type j = 0; j < layer_sizes[l]; ++j) {
+                for (int_type k = 0; k < layer_sizes[l-1]; ++k) {
+                    weights.w[weight_index_type{l, j, k}] =
                         Connector(l, j, k, layer_sizes[l-1], layer_sizes[l]);
                 }
             }

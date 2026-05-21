@@ -69,6 +69,13 @@ target_include_directories(
     Boost::YML-archive INTERFACE
     "${PROJECT_SOURCE_DIR}/src/boost-archive-yaml"
 )
+# MSVC needs iso646.h included to support alternative operator representations
+# and __INCLUDE_LEVEL__ is defined to 1 to prevent Boost.YML-archive from
+# defining its own main() entry point on Windows
+if(MSVC)
+    target_compile_definitions(Boost::YML-archive INTERFACE __INCLUDE_LEVEL__=1)
+    target_compile_options(Boost::YML-archive INTERFACE /FIiso646.h)
+endif()
 
 # find OpenCV
 # note: we don't actually use it much here so not required

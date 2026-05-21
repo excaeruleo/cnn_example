@@ -38,7 +38,7 @@ foreach(input_file ${test_input_files})
     # links so we zwork around this by creating a hard link instead
     add_custom_target(
         exccnn_symlink_${target_suffix}
-        COMMAND ${CMAKE_COMMAND} -E create_$<IF:${WIN32},hard,sym>link
+        COMMAND ${CMAKE_COMMAND} -E create_$<IF:${EXCCNN_WIN32},hard,sym>link
                 ${CMAKE_CURRENT_SOURCE_DIR}/${input_file}
                 ${PROJECT_BINARY_DIR}/test/${input_file}
         BYPRODUCTS "${PROJECT_BINARY_DIR}/test/${input_file}"

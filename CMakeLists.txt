@@ -102,6 +102,13 @@ else()
     message(STATUS "X version: None")
 endif()
 
+# 1/0 variable for Windows detection since WIN32 is not always defined
+if(WIN32)
+    set(EXCCNN_WIN32 1)
+else()
+    set(EXCCNN_WIN32 0)
+endif()
+
 # set compile options
 if(MSVC)
     add_compile_options(/W4)

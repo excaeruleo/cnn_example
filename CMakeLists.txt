@@ -43,11 +43,19 @@ if(CMAKE_VERSION VERSION_GREATER_EQUAL 3.30)
     cmake_policy(PUSH)
     cmake_policy(SET CMP0167 OLD)
 endif()
+# TODO: need to ensure that Boost.Iostreams has been built with zlib support
+# otherwise using boost/iostreams/filter/zlib.hpp gives linker errors
 find_package(Boost 1.71 REQUIRED COMPONENTS iostreams serialization)
 if(CMAKE_VERSION VERSION_GREATER_EQUAL 3.30)
     cmake_policy(POP)
 endif()
 message(STATUS "Boost version: ${Boost_VERSION}")
+# indicate if static libraries are being used
+if(Boost_USE_STATIC_LIBS)
+    message(STATUS "Boost libraries: Static")
+else()
+    message(STATUS "Boost libraries: Shared")
+endif()
 
 # create Boost.YML-archive IMPORTED target
 add_library(Boost::YML-archive IMPORTED INTERFACE)

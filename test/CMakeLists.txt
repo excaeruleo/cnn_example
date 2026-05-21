@@ -1,111 +1,172 @@
-#How to build robust software and make software development pleasant
+cmake_minimum_required(VERSION ${CMAKE_MINIMUM_REQUIRED_VERSION})
+
+# How to build robust software and make software development pleasant:
+#
 # 1. Set up a flexible build system.
 # 2. Set up unit tests for your code.
-# 3. Set up a test frame to constantly check your changes.
+# 3. Set up a test framework to constantly check your changes.
 # 4. Set up revision control.
-# 5. cmake and git make the process managable.
-cmake_minimum_required(VERSION 3.5)
-project(cnn_tests)
+# 5. CMake and Git make the process managable.
+#
 
-option(USE_DEBUG "Enter debug mode" OFF)
-if (USE_DEBUG)
-  add_definitions(-DDEBUG)
-endif()
+# list( APPEND cnn_testinput
+#     testinput/test.png
+#     testinput/simple_nn.yaml
+#     testinput/train-images-idx3-ubyte.gz
+#     testinput/train-labels-idx1-ubyte.gz
+#     testinput/t10k-images-idx3-ubyte.gz
+#     testinput/t10k-labels-idx1-ubyte.gz
+# )
 
-list( APPEND cnn_testinput
-  testinput/test.png
-  testinput/simple_nn.yaml
-  testinput/train-images-idx3-ubyte.gz
-  testinput/train-labels-idx1-ubyte.gz
-  testinput/t10k-images-idx3-ubyte.gz
-  testinput/t10k-labels-idx1-ubyte.gz 
+##
+# Create a simple test executable that runs in the top-level binary directory.
+#
+# The test looks for ${target}.cpp, creates the executable target ${target},
+# and adds a CTest test ${target} that runs in ${PROJECT_BINARY_DIR}. Any extra
+# libraries are linked as PRIVATE using target_link_libraries().
+#
+# Additional test properties need to be done manually.
+#
+# Arguments:
+#   target                  Executable target
+#   [LIBRARIES libs...]     Library targets for target_link_libraries()
+#
+function(exccnn_add_test target)
+    cmake_parse_arguments(ARG "" "" "LIBRARIES" ${ARGN})
+    # create test executable using libraries
+    add_executable(${target} ${target}.cpp)
+    if(ARG_LIBRARIES)
+        target_link_libraries(${target} PRIVATE ${ARG_LIBRARIES})
+    endif()
+    # basic test
+    add_test(
+        NAME ${target}
+        COMMAND ${target}
+        WORKING_DIRECTORY ${PROJECT_BINARY_DIR}
+    )
+endfunction()
+
+# test_boost_ver: prints the Boost version
+exccnn_add_test(test_boost_ver LIBRARIES Boost::headers)
+
+# test_cnn2: simple neural network test
+exccnn_add_test(
+    test_cnn2 LIBRARIES
+    Boost::serialization Boost::YML-archive cnnlib
+)
+# test_cnn2 produces the trained2.yml used by test_cnn2_import
+set_tests_properties(test_cnn2 PROPERTIES FIXTURES_SETUP trained2_yml)
+
+# test_cnn2_import: simple neural network test using test_cnn2 YML model output
+exccnn_add_test(
+    test_cnn2_import LIBRARIES
+    Boost::serialization Boost::YML-archive cnnlib
+)
+# test_cnn2_import uses the trained2.yml from test_cnn2
+set_tests_properties(test_cnn2_import PROPERTIES FIXTURES_REQUIRED trained2_yml)
+
+# test_cnn3: another simple neural network test
+exccnn_add_test(
+    test_cnn3 LIBRARIES
+    Boost::serialization Boost::YML-archive cnnlib
+)
+# test_cnn3 produces trained3.yml
+set_tests_properties(test_cnn3 PROPERTIES FIXTURES_SETUP trained3_yml)
+
+# test_cnn4: another simple neural network test
+exccnn_add_test(
+    test_cnn4 LIBRARIES
+    Boost::serialization Boost::YML-archive cnnlib
+)
+# test_cnn4 produces trained4.yml
+set_tests_properties(test_cnn4 PROPERTIES FIXTURES_SETUP trained4_yml)
+
+# test_cnn5: neural network training test on 1000 images from MNIST
+exccnn_add_test(
+    test_cnn5 LIBRARIES
+    Boost::serialization Boost::YML-archive cnnlib
+)
+# test_cnn5 produces trained5.yml
+set_tests_properties(test_cnn5 PROPERTIES FIXTURES_SETUP trained5_yml)
+
+# test_cnn6: larger neural network test on 1000 images from MNIST
+# note: not run with CTest since it's pretty slow
+# note: test_cnn6 produces trained_mnist.yml
+add_executable(test_cnn6 test_cnn6.cpp)
+target_link_libraries(
+    test_cnn6 PRIVATE
+    Boost::serialization Boost::YML-archive cnnlib
 )
 
-# Prepare a list of sources files under test
-file( GLOB SOURCE_FILES ./*.cpp )
+# test_compression: Boost.Serialize struct compression test
+# note: need additional zlib link due to use of boost/iostreams/filter/zlib.hpp
+exccnn_add_test(
+    test_compression LIBRARIES
+    Boost::iostreams Boost::serialization ZLIB::ZLIB
+)
+# test_compression produces compressed_data.dat
+set_tests_properties(
+    test_compression PROPERTIES
+    FIXTURES_SETUP compressed_data_dat
+)
 
-# Create an empty list for executables
-set(cnn_testlist)
+# test_connection: test the CNN connection class
+# FIXME: test just includes connection.hpp and returns zero
+exccnn_add_test(test_connection LIBRARIES cnnlib)
 
-# Iterate over each source file
-foreach(SOURCE_FILE ${SOURCE_FILES})
+# test_connector: test the CNN connector class
+# FIXME: test just includes connector.hpp and returns zero
+exccnn_add_test(test_connector LIBRARIES cnnlib)
 
-    # Get the base name of the source file (without extension)
-    get_filename_component(BASE_NAME ${SOURCE_FILE} NAME_WE)
+# test_file_exists: test if several files exist
+# note: kind of silly test but this has been revamped to work correctly
+add_executable(test_file_exists test_file_exists.cpp)
+# use some of the existing source files as inputs
+add_test(
+    NAME test_file_exists
+    COMMAND test_file_exists test_cnn2.cpp test_cnn3.cpp test_cnn4.cpp
+    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+)
 
-    # Add an executable target for each source file
-    add_executable(${BASE_NAME} ${SOURCE_FILE})
-
-    # Append the executable name to the list
-    list(APPEND cnn_testlist ${BASE_NAME})
-
-endforeach()
-
-# Print the list of executables
-message("List of executables: ${cnn_testlist}")
-
-# Copy the list of executables to list of tests
-set(cnn_testexec ${cnn_testlist})
-
-# Make the testinput directory under test
-file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/testinput)
-# Soft link all the testinput files
-message(CMAKE_CURRENT_SOURCE_DIR="${CMAKE_CURRENT_SOURCE_DIR}")
-message(CMAKE_CURRENT_BINARY_DIR="${CMAKE_CURRENT_BINARY_DIR}")
-message(CMAKE_BINARY_DIR="${CMAKE_BINARY_DIR}")
-
-foreach(FILENAME ${cnn_testinput})
-	execute_process( COMMAND ${CMAKE_COMMAND} -E create_symlink
-		${CMAKE_CURRENT_SOURCE_DIR}/${FILENAME}
-		${CMAKE_CURRENT_BINARY_DIR}/${FILENAME} )
-endforeach(FILENAME)
-
-enable_testing()
-foreach(FILENAME ${cnn_testlist})
-  add_test(
-    NAME ${FILENAME}
-    COMMAND ${FILENAME}
-  )
-endforeach(FILENAME)
-# No need to check the opencv test all the time.
-# add_test(
-# NAME test_opencv
-# COMMAND test_opencv "testinput/test.png"
-# )
-# add_test(
-# NAME test_file_exists
-# COMMAND test_file_exists "test_layer.cpp non_existent.cpp"
-# )
-include_directories(${CNN_HEADERS_DIR} ${YAML_HEADERS_DIR} /usr/include/opencv4)
-link_directories(${CMAKE_BINARY_DIR}/src .)
-
-set(EXECUTABLE_OUTPUT_PATH ../bin)
-set(BOOST_LINK_FLAG boost_serialization boost_system boost_filesystem boost_iostreams z)
-set(CNNLIB_LINK_FLAG cnnlib)
-if(CMAKE_SYSTEM_NAME MATCHES "Linux")
-  set(X_LINK_FLAG X11 Xext)
-elseif(CMAKE_SYSTEM_NAME MATCHES "Windows")
-  set(X_LINK_FLAG gdi32)
+# test_fr_read_linux: test writing a screenshot of the current screen
+if(X11_FOUND)
+    exccnn_add_test(test_fr_read_linux LIBRARIES X11::X11)
+else()
+    message(STATUS "Skipping test_fr_read_linux (X11 required)")
 endif()
 
-#message(OpenCV_LIBS="${OpenCV_LIBS}")
+# test_ifassign: conditional assignment test
+# TODO: consider removing as it's not really relevant
+exccnn_add_test(test_ifassign)
 
-# https://stackoverflow.com/questions/14306642/adding-multiple-executables-in-cmake
-foreach( testsourcefile ${SOURCE_FILES} )
-    # Cut off the file extension and directory path
-    get_filename_component( testname ${testsourcefile} NAME_WE )
-    #add_executable( ${testname} ${testsourcefile} )
-    # Make sure YourLib is linked to each app
-    # target_link_libraries( ${testname} YourLib )
-    target_link_libraries( ${testname} ${CNNLIB_LINK_FLAG} ${OpenCV_LIBS} ${X_LINK_FLAG} ${BOOST_LINK_FLAG} )
-endforeach( testsourcefile ${SOURCE_FILES} )
+# test_inheritance: test class member function inhertiance
+# TODO: consider removing as it's not really relevant
+exccnn_add_test(test_inheritance)
 
-# ensure test_cnn2 is run *before* test_cnn2_import due to dependence on the
-# trained.yml file produced by test_cnn2 used by test_cnn2_import
-set_tests_properties(test_cnn2 PROPERTIES FIXTURES_SETUP trained_yml)
-set_tests_properties(test_cnn2_import PROPERTIES FIXTURES_REQUIRED trained_yml)
+# test_layer: test the CNN layer class
+exccnn_add_test(test_layer LIBRARIES cnnlib)
 
-install(TARGETS ${cnn_testexec} DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/../bin)
+# test_map_archive: test std::unordered_map archive with Boost.Serialization
+exccnn_add_test(test_map_archive LIBRARIES Boost::headers Boost::serialization)
 
-#file(COPY testinput DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
+# test_matrix: Boost.Numeric uBLAS matrix functionality test
+exccnn_add_test(test_matrix LIBRARIES Boost::headers cnnlib)
 
+# test_neuron: test CNN neuron class
+# FIXME: test just includes neuron.hpp and returns zero
+exccnn_add_test(test_neuron LIBRARIES cnnlib)
+
+# test_optimizer: test CNN optimizer class
+# note: mostly a smoke test of construction and doesn't do much
+exccnn_add_test(test_optimizer LIBRARIES cnnlib)
+
+# test_rand: test the stdlib.h rand() function
+# TODO: consider removing as it's not really relevant
+exccnn_add_test(test_rand)
+
+# test_weights: test CNN weights construction + some uBLAS stuff
+# TODO: probably want to write a more meaningful test here
+exccnn_add_test(test_weights LIBRARIES Boost::headers cnnlib)
+
+# unordered_map: test use of unordered_map for use as a sparse array
+exccnn_add_test(unordered_map)

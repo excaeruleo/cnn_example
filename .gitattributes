@@ -2,5 +2,5 @@
 * text=auto
 # batch files need CRLF
 *.bat text eol=crlf
-# exclude Boost.YML-archive from Linguist stats
-src/boost-archive-yaml/** linguist-vendored
+# exclude all third_party code from Linguist stats
+third_party/** linguist-vendored

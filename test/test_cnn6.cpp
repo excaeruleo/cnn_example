@@ -45,14 +45,14 @@ public:
     // Find the index of the maximum value in the output layer
     // This index corresponds to the predicted digit (0-9)
     auto max_it = std::max_element(output.begin(), output.end());
-    return std::distance(output.begin(), max_it);
+    return static_cast<int>(std::distance(output.begin(), max_it));
   }
 
 };
 
 bool simple_neural_network::initialize() {
-    std::vector<int> layer_sizes = {784, 256, 10};  // Define layer sizes
-    n_layers = layer_sizes.size();
+    std::vector<cnn::int_type> layer_sizes{784, 256, 10};  // Define layer sizes
+    n_layers = static_cast<int>(layer_sizes.size());
     epoch_frequency = 200;
     // Create layers
     layers.clear();
@@ -66,11 +66,11 @@ bool simple_neural_network::initialize() {
 
     // Initialize weights between layers using Adam
     using it = weight_index_type;
-    for (size_t l = 1; l < layer_sizes.size(); ++l) {
-        for (int j = 0; j < layer_sizes[l]; ++j) {
-            for (int k = 0; k < layer_sizes[l-1]; ++k) {
-                weights.w[it{static_cast<int>(l), j, k}] =
-                    cnn::Connector(l, j, k);  // Pass layer sizes
+    using cnn::int_type;
+    for (int_type l = 1; l < layer_sizes.size(); ++l) {
+        for (int_type j = 0; j < layer_sizes[l]; ++j) {
+            for (int_type k = 0; k < layer_sizes[l-1]; ++k) {
+                weights.w[it{l, j, k}] = cnn::Connector(l, j, k);  // Pass layer sizes
             }
         }
     }
@@ -175,7 +175,7 @@ int main(int argc, char* argv[]) {
     // Normalize pixel values to [0,1]
     for (auto& image : pixelValues) {
         for (auto& pixel : image) {
-            pixel = static_cast<cnn::real_type>(pixel) / 255.0;
+            pixel = static_cast<cnn::real_type>(pixel) / 255;
         }
     }
 

@@ -9,14 +9,47 @@ cmake_minimum_required(VERSION ${CMAKE_MINIMUM_REQUIRED_VERSION})
 # 5. CMake and Git make the process managable.
 #
 
-# list( APPEND cnn_testinput
-#     testinput/test.png
-#     testinput/simple_nn.yaml
-#     testinput/train-images-idx3-ubyte.gz
-#     testinput/train-labels-idx1-ubyte.gz
-#     testinput/t10k-images-idx3-ubyte.gz
-#     testinput/t10k-labels-idx1-ubyte.gz
-# )
+# ensure test programs can be run from build directory without copying test
+# input files. we do this by creating symlinks from PROJECT_SOURCE_DIR to
+# PROJECT_BINARY_DIR for each of the input files in testinput we care about
+list(
+    APPEND test_input_files
+    testinput/train-images-idx3-ubyte.gz
+    testinput/train-labels-idx1-ubyte.gz
+    testinput/t10k-images-idx3-ubyte.gz
+    testinput/t10k-labels-idx1-ubyte.gz
+)
+# custom target for the symlink creation + initial directory creation
+add_custom_target(exccnn_testinput_symlinks ALL)
+add_custom_target(
+    exccnn_testinput_build_dir
+    COMMAND ${CMAKE_COMMAND} -E make_directory
+            ${PROJECT_BINARY_DIR}/test/testinput
+    VERBATIM
+)
+# extra dependency in case test_input_files is empty
+add_dependencies(exccnn_testinput_symlinks exccnn_testinput_build_dir)
+# add custom target to create symlink for each input file
+foreach(input_file ${test_input_files})
+    # mangle name appropriately
+    string(REGEX REPLACE "[/.-]+" "_" target_suffix "${input_file}")
+    # add target to create symlink
+    # note: on Windows elevated privileges are required to create symbolic
+    # links so we zwork around this by creating a hard link instead
+    add_custom_target(
+        exccnn_symlink_${target_suffix}
+        COMMAND ${CMAKE_COMMAND} -E create_$<IF:${WIN32},hard,sym>link
+                ${CMAKE_CURRENT_SOURCE_DIR}/${input_file}
+                ${PROJECT_BINARY_DIR}/test/${input_file}
+        BYPRODUCTS "${PROJECT_BINARY_DIR}/test/${input_file}"
+        COMMENT "Creating link for ${input_file}"
+        VERBATIM
+    )
+    # ensure target is run only when test/testinput directory is created
+    add_dependencies(exccnn_symlink_${target_suffix} exccnn_testinput_build_dir)
+    # ensure that exccnn_testinput_symlinks depends on the rule
+    add_dependencies(exccnn_testinput_symlinks exccnn_symlink_${target_suffix})
+endforeach()
 
 ##
 # Create a simple test executable that runs in the top-level binary directory.

@@ -197,6 +197,16 @@ exccnn_add_test(test_optimizer LIBRARIES cnnlib)
 # TODO: consider removing as it's not really relevant
 exccnn_add_test(test_rand)
 
+# test_screencap: capture the screen and save it to a PPM file
+exccnn_add_test(test_screencap)
+# on Windows need gdi32 and user32 libraries
+if(WIN32)
+    target_link_libraries(test_screencap PRIVATE gdi32 user32)
+# otherwise we just link against X11
+else()
+    target_link_libraries(test_screencap PRIVATE X11::X11)
+endif()
+
 # test_weights: test CNN weights construction + some uBLAS stuff
 # TODO: probably want to write a more meaningful test here
 exccnn_add_test(test_weights LIBRARIES Boost::headers cnnlib)

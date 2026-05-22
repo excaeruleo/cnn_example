@@ -162,10 +162,16 @@ add_test(
 )
 
 # test_fr_read_linux: test writing a screenshot of the current screen
-if(X11_FOUND)
+if(X11_FOUND AND X11_XShm_FOUND)
     exccnn_add_test(test_fr_read_linux LIBRARIES X11::X11 X11::Xext)
+    # some X servers may not support the MIT-SHM extension required for this
+    # test to work so we don't mark test as failed in this case
+    set_tests_properties(
+        test_fr_read_linux PROPERTIES
+        SKIP_REGULAR_EXPRESSION "X server does not support MIT-SHM extension"
+    )
 else()
-    message(STATUS "Skipping test_fr_read_linux (X11 required)")
+    message(STATUS "Skipping test_fr_read_linux (X11 and XShm required)")
 endif()
 
 # test_ifassign: conditional assignment test
@@ -198,13 +204,14 @@ exccnn_add_test(test_optimizer LIBRARIES cnnlib)
 exccnn_add_test(test_rand)
 
 # test_screencap: capture the screen and save it to a PPM file
-exccnn_add_test(test_screencap)
 # on Windows need gdi32 and user32 libraries
 if(WIN32)
-    target_link_libraries(test_screencap PRIVATE gdi32 user32)
-# otherwise we just link against X11
+    exccnn_add_test(test_screencap LIBRARIES gdi32 user32)
+# otherwise we use X11 for non-Windows platforms
+elseif(X11_FOUND)
+    exccnn_add_test(test_screencap LIBRARIES X11::X11)
 else()
-    target_link_libraries(test_screencap PRIVATE X11::X11)
+    message(STATUS "Skipping test_screencap (X11 required)")
 endif()
 
 # test_weights: test CNN weights construction + some uBLAS stuff

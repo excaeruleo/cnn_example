@@ -164,11 +164,12 @@ add_test(
 # test_fr_read_linux: test writing a screenshot of the current screen
 if(X11_FOUND AND X11_XShm_FOUND)
     exccnn_add_test(test_fr_read_linux LIBRARIES X11::X11 X11::Xext)
-    # some X servers may not support the MIT-SHM extension required for this
-    # test to work so we don't mark test as failed in this case
-    set_tests_properties(
-        test_fr_read_linux PROPERTIES
-        SKIP_REGULAR_EXPRESSION "X server does not support MIT-SHM extension"
+    # skip test if X display is not available or if X server doesn't support
+    # the MIT-SHM extension required for this test to work correctly
+    set_property(
+        TEST test_fr_read_linux PROPERTY
+        SKIP_REGULAR_EXPRESSION "Unable to open X display"
+                                "X server does not support MIT-SHM extension"
     )
 else()
     message(STATUS "Skipping test_fr_read_linux (X11 and XShm required)")
@@ -210,6 +211,11 @@ if(WIN32)
 # otherwise we use X11 for non-Windows platforms
 elseif(X11_FOUND)
     exccnn_add_test(test_screencap LIBRARIES X11::X11)
+    # skip test if X display is not available
+    set_property(
+        TEST test_screencap PROPERTY
+        SKIP_REGULAR_EXPRESSION "unable to open X display"
+    )
 else()
     message(STATUS "Skipping test_screencap (X11 required)")
 endif()

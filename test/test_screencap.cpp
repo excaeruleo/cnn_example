@@ -258,7 +258,8 @@ private:
  * Return a PPM image representing the current screen capture.
  *
  * On Windows this is the screen capture of the entire desktop display while on
- * Unix/Linux the default X display is captured.
+ * Unix/Linux the default X display is captured. GDI implementation referenced
+ * https://learn.microsoft.com/en-us/windows/win32/gdi/capturing-an-image
  */
 auto ppm_screen_capture()
 {

@@ -27,7 +27,7 @@ int main() {
         return 1;
     }
 
-    // Check is XShm extension is supported by X server. If not, then we cannot
+    // Check if XShm extension is supported by X server. If not, then we cannot
     // use XShmCreateImage, and should indicate that to the user
     if (!XShmQueryExtension(display)) {
         fprintf(stderr, "X server does not support MIT-SHM extension\n");

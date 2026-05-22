@@ -234,7 +234,7 @@ public:
   /**
    * Ctor.
    *
-   * @note `std::function` move ctor is noexcept in C++20.
+   * @note `std::function` move ctor is `noexcept` in C++20.
    *
    * @param f Nullary callable to invoke on scope exit
    */

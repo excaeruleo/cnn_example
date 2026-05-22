@@ -373,7 +373,8 @@ auto ppm_screen_capture()
   // ensure XImage is cleaned up on scope exit
   scope_exit image_guard{[ximg] { XDestroyImage(ximg); }};
   // new PPM image + iterator
-  ppm_image img{width, height};
+  // note: not using list-init to avoid warning about narrowing
+  ppm_image img(width, height);
   auto img_it = img.begin();
   // get image pixels and convert to RGB triplets
   // note: iterate row-by-row of the image so height is the leading dimension

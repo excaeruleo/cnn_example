@@ -4,8 +4,8 @@
  * @brief C++ program that takes a screen capture and saves it as a PPM file
  * @copyright MIT License
  *
- * On Unix systems the running X window is captured while on Windows GDI is
- * used to screen capture the desktop display.
+ * On Unix systems the entire running X display window is captured while on
+ * Windows GDI is used to capture the desktop display.
  */
 
 #if defined(_WIN32)

@@ -1,69 +1,134 @@
+/**
+ * @file test_screencap.cpp
+ * @author Derek Huang
+ * @brief C++ program that takes a screen capture and saves it as a PPM file
+ * @copyright MIT License
+ *
+ * On Unix systems the running X window is captured while on Windows GDI is
+ * used to screen capture the desktop display.
+ */
+
 #if defined(_WIN32)
 #ifndef WIN32_LEAN_AND_MEAN
 #define WIN32_LEAN_AND_MEAN
 #endif  // WIN32_LEAN_AND_MEAN
 #include <Windows.h>
+#include <wingdi.h>
+#include <WinUser.h>
 #else
 #include <sys/ipc.h>
 #include <sys/shm.h>
 
 #include <X11/Xlib.h>
 #include <X11/Xutil.h>
-#include <X11/extensions/XShm.h>
 #endif  // !defined(_WIN32)
 
-#include <cerrno>
 #include <cstring>
 #include <fstream>
 #include <functional>
 #include <ios>
 #include <iostream>
 #include <memory>
+#include <stdexcept>
 #include <string>
+#include <system_error>
 #include <utility>
 
 namespace {
 
 /**
- * PPM image buffer view.
+ * PPM image buffer.
  *
- * The buffer is expected to contain `width * height` RGB triplets.
+ * For an image with `width * height` pixels the number of bytes managed will
+ * be `3 * width * height`, with pixels represented as RGB byte triplets.
  */
-class ppm_view {
+class ppm_image {
 public:
   /**
    * Ctor.
    *
-   * @param data Buffer to `width * height` RGB triplets (3 bytes each)
+   * Allocates memory for a PPM image of size `width * height` in pixels.
+   *
    * @param width Width in pixels
    * @param height Height in pixels
    */
-  constexpr ppm_view(unsigned char* data, unsigned width, unsigned height) noexcept
-    : data_{data}, width_{width}, height_{height}
+  ppm_image(unsigned width, unsigned height)
+    : data_{new unsigned char[3u * width * height]},
+      width_{width},
+      height_{height}
   {}
+
+  /**
+   * Copy ctor.
+   */
+  ppm_image(const ppm_image& other)
+  {
+    from(other);
+  }
+
+  /**
+   * Move ctor.
+   */
+  ppm_image(ppm_image&& other) noexcept
+  {
+    from(std::move(other));
+  }
+
+  /**
+   * Copy assignment operator.
+   */
+  auto& operator=(const ppm_image& other)
+  {
+    destroy();
+    from(other);
+    return *this;
+  }
+
+  /**
+   * Move assignment operator.
+   */
+  auto& operator=(ppm_image&& other) noexcept
+  {
+    destroy();
+    from(std::move(other));
+    return *this;
+  }
+
+  /**
+   * Dtor.
+   */
+  ~ppm_image()
+  {
+    destroy();
+  }
+
+  /**
+   * Return a pointer to the first data byte.
+   */
+  auto data() const noexcept { return data_; }
 
   /**
    * Return image width in pixels.
    */
-  constexpr auto width() const noexcept { return width_; }
+  auto width() const noexcept { return width_; }
 
   /**
    * Return image height in pixels.
    */
-  constexpr auto height() const noexcept { return height_; }
+  auto height() const noexcept { return height_; }
 
   /**
-   * Return total number of bytes in the buffer.
+   * Return total number of bytes in the image.
    */
-  constexpr auto size() const noexcept
+  auto size() const noexcept
   {
     return 3u * width_ * height_;
   }
 
   /**
-   * Return total pixels represented by the buffer.
+   * Return total pixels represented by the image.
    */
-  constexpr auto pixels() const noexcept
+  auto pixels() const noexcept
   {
     return width_ * height_;
   }
@@ -84,10 +149,62 @@ public:
     return data_[i];
   }
 
+  /**
+   * Return an iterator to the first image byte.
+   */
+  auto begin() const noexcept
+  {
+    return data_;
+  }
+
+  /**
+   * Return an iterator one past the last image byte.
+   */
+  auto end() const noexcept
+  {
+    return data_ + size();
+  }
+
 private:
   unsigned char* data_;
   unsigned width_;
   unsigned height_;
+
+  /**
+   * Copy-initialize from another PPM image.
+   */
+  void from(const ppm_image& other)
+  {
+    // allocate + copy data
+    data_ = new unsigned char[other.size()];
+    std::memcpy(data_, other.data_, other.size());
+    // copy members
+    width_ = other.width_;
+    height_ = other.height_;
+  }
+
+  /**
+   * Move-initialize from another PPM image.
+   *
+   * On completion the other PPM image has `nullptr` data and zero size.
+   */
+  void from(ppm_image&& other) noexcept
+  {
+    data_ = other.data_;
+    width_ = other.width_;
+    height_ = other.height_;
+    other.data_ = nullptr;
+    other.width_ = 0u;
+    other.height_ = 0u;
+  }
+
+  /**
+   * Deallocate the image bytes if any.
+   */
+  void destroy() noexcept
+  {
+    delete[] data_;
+  }
 };
 
 /**
@@ -96,17 +213,17 @@ private:
  * The stream should have been opened in binary mode as bytes will be written.
  *
  * @param out Output stream
- * @param view PPM image buffer view
+ * @param image PPM image
  */
-auto& operator<<(std::ostream& out, const ppm_view& view)
+auto& operator<<(std::ostream& out, const ppm_image& image)
 {
   // whitespace-separated magic, width, height, max color value
   out <<
     "P6\n" <<
-    std::to_string(view.width()) << " " <<
-    std::to_string(view.height()) << "\n255\n";
+    std::to_string(image.width()) << " " <<
+    std::to_string(image.height()) << "\n255\n";
   // write buffer bytes directly
-  return out.write(reinterpret_cast<const char*>(&view[0]), view.size());
+  return out.write(reinterpret_cast<const char*>(image.data()), image.size());
 }
 
 /**
@@ -137,104 +254,166 @@ private:
   std::function<void()> f_;
 };
 
-}  // namespace
-
-// TODO: wrap in separate function, use system_exception instead of exit, and
-// have the actual main contain a wrapped try-block
-// note: possibility for Windows: https://stackoverflow.com/a/3291261
-int main()
+/**
+ * Return a PPM image representing the current screen capture.
+ *
+ * On Windows this is the screen capture of the entire desktop display while on
+ * Unix/Linux the default X display is captured.
+ */
+auto ppm_screen_capture()
 {
+#if defined(_WIN32)
+  // device context for entire display
+  auto hdc = GetDC(nullptr);
+  if (!hdc)
+    throw std::runtime_error{"unable to get device context for display"};
+  // ensure device context handle is released on scope exit
+  scope_exit hdc_guard{[hdc] { ReleaseDC(nullptr, hdc); }};
+  // create target memory device context
+  auto hdc_tgt = CreateCompatibleDC(hdc);
+  if (!hdc_tgt)
+    throw std::runtime_error{"unable to create target memory device context"};
+  // ensure memory device context is destroyed on scope exit
+  scope_exit hdc_tgt_guard{[hdc_tgt] { DeleteDC(hdc_tgt); }};
+  // get dimensions of desktop window for CreateCompatibleBitMap()
+  RECT dims;
+  if (!GetClientRect(GetDesktopWindow(), &dims))
+    throw std::system_error{
+      static_cast<int>(GetLastError()), std::system_category(),
+      "GetDesktopWindow()"
+    };
+  // desktop width and height
+  auto width = dims.right;
+  auto height = dims.bottom;
+  // create compatible bitmap with the display device context + desktop dims
+  auto hbm = CreateCompatibleBitmap(hdc, width, height);
+  if (!hbm)
+    throw std::runtime_error{"unable to create compatible bitmap"};
+  // ensure bitmap is deleted on scope exit
+  scope_exit hbm_guard{[hbm] { DeleteObject(hbm); }};
+  // select bitmap into target device context
+  if (!SelectObject(hdc_tgt, hbm))
+    throw std::runtime_error{"unable to replace existing device context bitmap"};
+  // bit-block transfer color data from display DC into target DC
+  if (!BitBlt(hdc_tgt, 0, 0, width, height, hdc, 0, 0, SRCCOPY))
+    throw std::system_error{
+      static_cast<int>(GetLastError()), std::system_category(),
+      "BitBlt()"
+    };
+  // populate BITMAPINFO structure for GetDIBits()
+  BITMAPINFO bmi;
+  bmi.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
+  bmi.bmiHeader.biWidth = width;
+  // note: use negated height for (0, 0) to be in top-left corner
+  bmi.bmiHeader.biHeight = -height;
+  bmi.bmiHeader.biPlanes = 1;
+  // note: use 24 bits for BGR color
+  bmi.bmiHeader.biBitCount = 24;
+  bmi.bmiHeader.biCompression = BI_RGB;
+  // note: can be zero for uncompressed bitmaps
+  bmi.bmiHeader.biSizeImage = 0;
+  bmi.bmiHeader.biXPelsPerMeter = 0;
+  bmi.bmiHeader.biYPelsPerMeter = 0;
+  // no color table indices used + all colors important
+  bmi.bmiHeader.biClrUsed = 0;
+  bmi.bmiHeader.biClrImportant = 0;
+  // get actual bitmap buffer width in bytes that accounts for padding
+  auto bmp_width = GDI_DIBWIDTHBYTES(bmi.bmiHeader);
+  auto bmp_size = bmp_width * height;
+  // buffer with appropriate padding for RGB pixels
+  auto bmp = std::make_unique<unsigned char[]>(bmp_size);
+  // retrieve device-independent bit representation into buffer
+  switch (GetDIBits(hdc, hbm, 0, height, &bmp[0], &bmi, DIB_RGB_COLORS)) {
+  case 0:
+    throw std::runtime_error{"GetDIBits(): error"};
+  case ERROR_INVALID_PARAMETER:
+    throw std::runtime_error{"GetDIBits(): invalid parameter"};
+  default:
+    break;
+  }
+  // new PPM image + iterators
+  // note: no list-init to allow narrowing conversion
+  ppm_image img(width, height);
+  auto img_it = img.begin();
+  auto bmp_it = &bmp[0];
+  // note: iterate row-by-row so height is leading dimension
+  for (int y = 0; y < height; y++) {
+    // fill row pixels
+    for (int x = 0; x < width; x++) {
+      *img_it++ = *(bmp_it + 2);  // B -> R
+      *img_it++ = *(bmp_it + 1);  // G -> G
+      *img_it++ = *bmp_it;        // R -> B
+      bmp_it += 3;                // advance to next bitmap triplet
+    }
+    // skip the remaining padding bytes
+    bmp_it += (bmp_width - 3 * width);
+  }
+  // done
+  return img;
+#else
   // open default X display (e.g. value given by DISPLAY)
-  auto display = XOpenDisplay(nullptr);
-  if (!display) {
-    std::cerr << "Error: Unable to open X display" << std::endl;
-    return EXIT_FAILURE;
-  }
-  // ensure display is cleaned up on scope exit
-  scope_exit display_guard{[display] { XCloseDisplay(display); }};
-  // default screen and root window
-  int screen = DefaultScreen(display);
-  auto root = RootWindow(display, screen);
+  auto dpy = XOpenDisplay(nullptr);
+  if (!dpy)
+    throw std::runtime_error{"unable to open X display"};
+  // get default root window + ensure display is cleaned up on scope exit
+  auto win = DefaultRootWindow(dpy);
+  scope_exit display_guard{[dpy] { XCloseDisplay(dpy); }};
   // window attributes
-  XWindowAttributes window_attributes;
-  if (!XGetWindowAttributes(display, root, &window_attributes)) {
-    std::cerr << "Error: Unable to get X window attributes" << std::endl;
-    return EXIT_FAILURE;
-  }
+  XWindowAttributes winattr;
+  if (!XGetWindowAttributes(dpy, win, &winattr))
+    throw std::runtime_error{"unable to get X window attributes"};
   // window dimensions
-  int width = window_attributes.width;
-  int height = window_attributes.height;
-  // create the image mapped in System V shared memory
-  XShmSegmentInfo shminfo;
-  // allocate XImage structure
-  auto image = XShmCreateImage(
-    display,
-    DefaultVisual(display, screen),
-    DefaultDepth(display, screen),
-    ZPixmap,                         // RGB triplets
-    nullptr,
-    &shminfo,
-    width,
-    height
-  );
-  // create shared memory segment
-  shminfo.shmid = shmget(
-    IPC_PRIVATE,
-    image->bytes_per_line * image->height,
-    // TODO: maybe we can use more restrictive permissions here
-    IPC_CREAT | 0777
-  );
-  if (!shminfo.shmid) {
-    std::cerr << "Error: Unable to get shared memory segment: " <<
-      std::strerror(errno) << std::endl;
-    return EXIT_FAILURE;
-  }
-  // ensure shmem is marked for destruction on scope exit
-  scope_exit shm_guard{[id = shminfo.shmid] { shmctl(id, IPC_RMID, nullptr); }};
-  // attach to shared memory segment
-  shminfo.shmaddr = image->data = shmat(shminfo.shmid, nullptr, nullptr);
-  if (shminfo.shmaddr == reinterpret_cast<void*>(-1)) {
-    std::cerr << "Error: Unable to attach shared memory segment: " <<
-      std::strerror(errno) << std::endl;
-    return EXIT_FAILURE;
-  }
-  // ensure detach is done on scope exit
-  scope_exit shmdt_guard{[ptr = shminfo.shmaddr] { shmdt(ptr); }};
-  // need to mark as writable
-  shminfo.readOnly = False;
-  // attach X server to shared memory segment
-  if (!XShmAttach(display, &shminfo)) {
-    std::cerr << "Error: Unable to attach X server to shared memory" << std::endl;
-    return EXIT_FAILURE;
-  }
-  // capture root window display + ensure image is destroyed on scope exit
-  // TODO: handle exit value
-  XShmGetImage(display, root, image, 0, 0, AllPlanes);
-  scope_exit image_guard{[image] { XDestroyImage(image); }};
-  // ensure X shmem detach on scope exit
-  // note: *must* be done *before* XDestroyImage() is called
-  scope_exit xshm_guard{[display, &shminfo] { XShmDetach(display, &shminfo); }};
-  // buffer for RGB triplets pixel data
-  auto rgbs = std::make_unique<unsigned char[]>(3u * width * height);
-  // iterate through pixels
-  for (int y = 0; y < height; ++y) {
-    for (int x = 0; x < width; ++x) {
+  int width = winattr.width;
+  int height = winattr.height;
+  // obtain image of the entire display as RGB triplets
+  auto ximg = XGetImage(dpy, win, 0, 0, width, height, AllPlanes, ZPixmap);
+  if (!ximg)
+    throw std::runtime_error{"unable to capture X display image"};
+  // ensure XImage is cleaned up on scope exit
+  scope_exit image_guard{[ximg] { XDestroyImage(ximg); }};
+  // new PPM image + iterator
+  ppm_image img{width, height};
+  auto img_it = img.begin();
+  // get image pixels and convert to RGB triplets
+  // note: iterate row-by-row of the image so height is the leading dimension
+  for (int y = 0; y < height; y++) {
+    for (int x = 0; x < width; x++) {
+      // get pixel
       // TDDO: consider handling byte order and color depth
-      auto pixel = XGetPixel(image, x, y);
-      // buffer + offset into data buffer
-      auto offset = 3u * (y * width + x);
-      auto buf = rgbs.get();
-      buf[offset] = (pixel >> 16) & 0xFF;     // Red
-      buf[offset + 1] = (pixel >> 8) & 0xFF;  // Green
-      buf[offset + 2] = pixel & 0xFF;         // Blue
+      auto pixel = XGetPixel(ximg, x, y);
+      // mask red, green, and blue bytes
+      *img_it++ = (pixel >> 16) & 0xFF;
+      *img_it++ = (pixel >> 8) & 0xFF;
+      *img_it++ = pixel & 0xFF;
     }
   }
-  // save the image data as a PPM file
+  // done
+  return img;
+#endif  // !defined(_WIN32)
+}
+
+}  // namespace
+
+int main() try
+{
+  // get screen capture as a PPM image
+  auto img = ppm_screen_capture();
+  // write screen capture as a PPM image
+  // TODO: path currently hardcoded
+  constexpr auto ppm_path = "screencap.ppm";
   {
-    constexpr auto ppm_path = "screenshot.ppm";
     std::ofstream fs{ppm_path, std::ios::binary};
-    fs << ppm_view{rgbs.get(), width, height} << std::flush;
-    std::cout << "Image saved to " << ppm_path << std::endl;
+    fs << img;
   }
+  // print and exit
+  std::cout << "Image saved to " << ppm_path << std::endl;
   return EXIT_SUCCESS;
+}
+catch (const std::exception& exc) {
+  std::cerr << "Exception: " << exc.what() << std::endl;
+  return EXIT_FAILURE;
+}
+catch (...) {
+  std::cerr << "Exception: Unknown exception" << std::endl;
+  return EXIT_FAILURE;
 }

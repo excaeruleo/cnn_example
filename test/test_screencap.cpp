@@ -267,13 +267,13 @@ auto ppm_screen_capture()
   // device context for entire display
   auto hdc = GetDC(nullptr);
   if (!hdc)
-    throw std::runtime_error{"unable to get device context for display"};
+    throw std::runtime_error{"Unable to get device context for display"};
   // ensure device context handle is released on scope exit
   scope_exit hdc_guard{[hdc] { ReleaseDC(nullptr, hdc); }};
   // create target memory device context
   auto hdc_tgt = CreateCompatibleDC(hdc);
   if (!hdc_tgt)
-    throw std::runtime_error{"unable to create target memory device context"};
+    throw std::runtime_error{"Unable to create target memory device context"};
   // ensure memory device context is destroyed on scope exit
   scope_exit hdc_tgt_guard{[hdc_tgt] { DeleteDC(hdc_tgt); }};
   // get dimensions of desktop window for CreateCompatibleBitMap()
@@ -289,12 +289,12 @@ auto ppm_screen_capture()
   // create compatible bitmap with the display device context + desktop dims
   auto hbm = CreateCompatibleBitmap(hdc, width, height);
   if (!hbm)
-    throw std::runtime_error{"unable to create compatible bitmap"};
+    throw std::runtime_error{"Unable to create compatible bitmap"};
   // ensure bitmap is deleted on scope exit
   scope_exit hbm_guard{[hbm] { DeleteObject(hbm); }};
   // select bitmap into target device context
   if (!SelectObject(hdc_tgt, hbm))
-    throw std::runtime_error{"unable to replace existing device context bitmap"};
+    throw std::runtime_error{"Unable to replace existing device context bitmap"};
   // bit-block transfer color data from display DC into target DC
   if (!BitBlt(hdc_tgt, 0, 0, width, height, hdc, 0, 0, SRCCOPY))
     throw std::system_error{
@@ -355,21 +355,21 @@ auto ppm_screen_capture()
   // open default X display (e.g. value given by DISPLAY)
   auto dpy = XOpenDisplay(nullptr);
   if (!dpy)
-    throw std::runtime_error{"unable to open X display"};
+    throw std::runtime_error{"Unable to open X display"};
   // get default root window + ensure display is cleaned up on scope exit
   auto win = DefaultRootWindow(dpy);
   scope_exit display_guard{[dpy] { XCloseDisplay(dpy); }};
   // window attributes
   XWindowAttributes winattr;
   if (!XGetWindowAttributes(dpy, win, &winattr))
-    throw std::runtime_error{"unable to get X window attributes"};
+    throw std::runtime_error{"Unable to get X window attributes"};
   // window dimensions
   int width = winattr.width;
   int height = winattr.height;
   // obtain image of the entire display as RGB triplets
   auto ximg = XGetImage(dpy, win, 0, 0, width, height, AllPlanes, ZPixmap);
   if (!ximg)
-    throw std::runtime_error{"unable to capture X display image"};
+    throw std::runtime_error{"Unable to capture X display image"};
   // ensure XImage is cleaned up on scope exit
   scope_exit image_guard{[ximg] { XDestroyImage(ximg); }};
   // new PPM image + iterator

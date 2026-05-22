@@ -214,7 +214,7 @@ elseif(X11_FOUND)
     # skip test if X display is not available
     set_property(
         TEST test_screencap PROPERTY
-        SKIP_REGULAR_EXPRESSION "unable to open X display"
+        SKIP_REGULAR_EXPRESSION "Unable to open X display"
     )
 else()
     message(STATUS "Skipping test_screencap (X11 required)")

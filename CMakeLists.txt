@@ -96,9 +96,43 @@ endif()
 
 # find X11
 # note: need XShm for one of the tests which is part of the Xext library
-find_package(X11 COMPONENTS Xext)
+find_package(X11 OPTIONAL_COMPONENTS XShm)
 if(X11_FOUND)
     message(STATUS "X version: 11")
+    # if XShm extension found parse out the header version
+    if(X11_XShm_FOUND)
+        # read SHM_(MAJOR|MINOR)_VERSION values
+        file(
+            STRINGS
+            "${X11_XShm_INCLUDE_PATH}/X11/extensions/shm.h"
+            EXCCNN_XShm_MAJOR_VERSION REGEX
+            "^#define[ \t]+SHM_MAJOR_VERSION[ \t]+[0-9]+.*"
+        )
+        file(
+            STRINGS
+            "${X11_XShm_INCLUDE_PATH}/X11/extensions/shm.h"
+            EXCCNN_XShm_MINOR_VERSION REGEX
+            "^#define[ \t]+SHM_MINOR_VERSION[ \t\]+[0-9]+.*"
+        )
+        # extract major + minor versions
+        string(
+            REGEX REPLACE
+            "^#define[ \t]+SHM_MAJOR_VERSION[ \t]+([0-9]+).*" "\\1"
+            EXCCNN_XShm_MAJOR_VERSION "${EXCCNN_XShm_MAJOR_VERSION}"
+        )
+        string(
+            REGEX REPLACE
+            "^#define[ \t]+SHM_MINOR_VERSION[ \t]+([0-9]+).*" "\\1"
+            EXCCNN_XShm_MINOR_VERSION "${EXCCNN_XShm_MINOR_VERSION}"
+        )
+        # construct + report full version
+        set(
+            EXCCNN_XShm_VERSION
+            ${EXCCNN_XShm_MAJOR_VERSION}.${EXCCNN_XShm_MINOR_VERSION}
+        )
+        message(STATUS "XShm version: ${EXCCNN_XShm_VERSION}")
+    else()
+    endif()
 else()
     message(STATUS "X version: None")
 endif()

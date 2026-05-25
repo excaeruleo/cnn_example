@@ -2,6 +2,11 @@ cmake_minimum_required(VERSION ${CMAKE_MINIMUM_REQUIRED_VERSION})
 
 # cnnlib: CNN support library
 add_library(cnnlib SHARED functions.cpp mnist.cpp utils.cpp)
+# if debugging trace required build with EXCCNN_TRACE defined. it is also added
+# as a usage requirement so one can use #ifdefs to check for trace on/off
+if(EXCCNN_TRACE)
+    target_compile_definitions(cnnlib PUBLIC EXCCNN_TRACE)
+endif()
 target_include_directories(cnnlib PUBLIC ${PROJECT_SOURCE_DIR}/include)
 target_link_libraries(cnnlib PRIVATE ZLIB::ZLIB)
 # note: header interface is currently a mess and Boost dependency is transitive

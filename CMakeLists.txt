@@ -14,15 +14,13 @@ else()
     message(STATUS "Build config: ${CMAKE_BUILD_TYPE}")
 endif()
 
-# Debug option
-# FIXME: DEBUG should have a project prefix, e.g. EXCCNN_. we can also have
-# this be an INTERFACE target instead with this macro definition
-option(USE_DEBUG "Enter debug mode" OFF)
-if(USE_DEBUG)
-    add_definitions(-DDEBUG)
-    message(STATUS "Debug mode: ON")
+# debugging trace option for extra debugging output
+# note: since this is a build-time option it is of limited use to consumers
+option(EXCCNN_TRACE "Build with debugging traces" OFF)
+if(EXCCNN_TRACE)
+    message(STATUS "Debug tracing: Yes")
 else()
-    message(STATUS "Debug mode: OFF")
+    message(STATUS "Debug tracing: No")
 endif()
 
 # C++ standard requirements

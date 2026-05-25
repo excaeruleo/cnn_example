@@ -130,9 +130,9 @@ public:
 
   void update_weight(real_type gradient){
     if(std::abs(gradient) < 1.e-10){
-#ifdef DEBUG
+#ifdef EXCCNN_TRACE
       std::cout << "gradient = " << gradient << std::endl;
-#endif
+#endif  // EXCCNN_TRACE
       return;
     }
 

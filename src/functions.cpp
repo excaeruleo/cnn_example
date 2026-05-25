@@ -71,14 +71,15 @@ cnn::real_type cross_entropy_loss(const std::vector<cnn::real_type>& predicted,
         loss -= target[i] * std::log(softmax_output[i]);
     }
 
-#ifndef DEBUG
+// FIXME: should not always be on. kept for now to make tests more informative
+#if 1
     std::cout << "Cross Entropy Loss Calculation:\n";
     std::cout << "Predicted (after softmax): ";
     for (const auto& p : softmax_output) std::cout << p << " ";
     std::cout << "\nTarget: ";
     for (const auto& t : target) std::cout << t << " ";
-    std::cout << "\nLoss: " << loss << "\n";
-#endif
+    std::cout << "\nLoss: " << loss << std::endl;
+#endif  // 1
 
     return loss;
 }

@@ -66,13 +66,13 @@ public:
     layer_name = "numerical";
   }
 	void set_optimizer(const optimizer & o){
-#ifdef DEBUG
+#ifdef EXCCNN_TRACE
 		std::cout << "set_optimizer = " << o << std::endl;
-#endif
+#endif  // EXCCNN_TRACE
 		layer_optimizer = o;
-#ifdef DEBUG
+#ifdef EXCCNN_TRACE
 		std::cout << "after set_optimizer = " << layer_optimizer << std::endl;
-#endif
+#endif  // EXCCNN_TRACE
 	}
 
   // ostream operator
@@ -108,9 +108,9 @@ public:
       for (cnn::int_type k = 0; k < prev.size(); k ++) {
         sum = sum + weights.w[it{l, j, k}].weight*prev[k];
         //sum = sum + weights.w[it{l, j, k}].weight*prev[k] + weights.w[it{l, j, k}].bias;
-#ifdef DEBUG
+#ifdef EXCCNN_TRACE
         printf("layer::update_forward:: l=%d,j=%d,k=%d: prev[k]=%f sum=%f \n", l, j, k, prev[k], sum);
-#endif
+#endif  // EXCCNN_TRACE
       }
       neurons[j].value = layer_optimizer.activate(sum);
       //printf("%d: %f \n", j, neurons[j].value);
@@ -139,14 +139,14 @@ public:
     for (cnn::int_type j = 0; j < size(); j ++) {
       for (cnn::int_type k = 0; k < prev.size(); k ++) {
         real_type gradient = delta[j]*prev[k];
-#ifdef DEBUG
+#ifdef EXCCNN_TRACE
         printf("update_backward::before l=%d,j=%d,k=%d: weight=%f gradient=%f\n", l,j,k, weights.w[it{l, j, k}].weight, gradient);
-#endif
+#endif  // EXCCNN_TRACE
         weights.w[it{l, j, k}].update_weight(gradient); // grad w_jk = delta_j * prev_k
         weights.w[it{l, j, k}].update_bias(delta[j]); // grad b_j = delta_j
-#ifdef DEBUG
+#ifdef EXCCNN_TRACE
         printf("update_backward::after l=%d,j=%d,k=%d: weight=%f \n", l,j,k, weights.w[it{l, j, k}].weight);
-#endif
+#endif  // EXCCNN_TRACE
       }
     }
 
@@ -163,7 +163,6 @@ public:
   }
 };
 
-};
+}  // namespace cnn
 
-#endif
-
+#endif  // LAYER_HPP

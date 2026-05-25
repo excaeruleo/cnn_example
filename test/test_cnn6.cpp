@@ -86,9 +86,9 @@ bool simple_neural_network::initialize() {
 /* reset the input to the image file pixel value */
 bool
 simple_neural_network::reset_input(const std::vector<std::vector<cnn::real_type>> & input, const int index){
-#ifdef DEBUG
+#ifdef EXCCNN_TRACE
 	std::cout << layers[0].size() << " " << input[index].size();
-#endif
+#endif  // EXCCNN_TRACE
 	assert(this->layers[0].size() == input[index].size());
 	for(cnn::int_type i = 0; i < this->layers[0].size(); i ++)
 		this->layers[0][i]=input[index][i];
@@ -101,9 +101,9 @@ simple_neural_network::reset_expected(const int & index){
 	for(cnn::int_type i = 0; i < this->expected.size(); i ++)
 		this->expected[i]=0;
         this->expected[index]=1;
-#ifdef DEBUG
+#ifdef EXCCNN_TRACE
 	std::cout << "expected = " << this->expected[index] << std::endl;
-#endif
+#endif  // EXCCNN_TRACE
 	return true;
 }
 
@@ -146,7 +146,7 @@ int main(int argc, char* argv[]) {
         std::cout << "Successfully read " << pixelValues.size() << " images with "
                   << pixelValues[0].size() << " pixels each and " << labels.size()
                   << " labels." << std::endl;
-#ifdef DEBUG
+#ifdef EXCCNN_TRACE
         // Debug output for first digit
         std::cout << "\nFirst digit (label: " << labels[0] << "):\n";
         for (int i = 0; i < 28; i++) {
@@ -166,7 +166,7 @@ int main(int argc, char* argv[]) {
             std::cout << "\n";
         }
         std::cout << "\n\n";
-#endif
+#endif  // EXCCNN_TRACE
     } catch (const std::exception& e) {
         std::cerr << e.what() << std::endl;
         return 1;
@@ -179,7 +179,7 @@ int main(int argc, char* argv[]) {
         }
     }
 
-#ifdef DEBUG
+#ifdef EXCCNN_TRACE
     // Debug: Print first few normalized pixels
     std::cout << "First few normalized digit: ";
     for (int i = 0; i < 28; ++i) {
@@ -189,7 +189,7 @@ int main(int argc, char* argv[]) {
         std::cout << "\n";
     }
     std::cout << "\n";
-#endif
+#endif  // EXCCNN_TRACE
     simple_neural_network nn;
 
     if (mode == "--train" || mode == "--resume") {
@@ -209,9 +209,9 @@ int main(int argc, char* argv[]) {
             nn.reset_input(pixelValues, idx);
             nn.reset_expected(labels[idx]);
             nn.reset_learning_parameters();
-#ifdef DEBUG
+#ifdef EXCCNN_TRACE
             std::cout << nn << std::endl;
-#endif
+#endif  // EXCCNN_TRACE
             nn.update();
         }
 
@@ -223,9 +223,10 @@ int main(int argc, char* argv[]) {
         std::ifstream ifs{"trained_mnist.yml"};
         boost::archive::yml_iarchive yia{ifs};
         yia >> NVP(nn);
-#ifndef DEBUG
+// FIXME: unsure if this should be #ifdef instead
+#ifndef EXCCNN_TRACE
         std::cout << "nn = " << nn << std::endl;
-#endif
+#endif  // EXCCNN_TRACE
         std::cout << "nn.print_weight_statistics() = " << std::endl;
         nn.print_weight_statistics();
 

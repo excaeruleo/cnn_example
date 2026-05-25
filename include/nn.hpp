@@ -76,13 +76,13 @@ public:
   virtual bool initialize() = 0; // Pure virtual function so this class must be extended.
 
 	void set_optimizer(const optimizer & o){
-#ifdef DEBUG
+#ifdef EXCCNN_TRACE
 		std::cout << "nn::set_optimizer = " << o << std::endl;
-#endif
+#endif  // EXCCNN_TRACE
 		for(int_type i = 0; i < layers.size(); i ++){
-#ifdef DEBUG
+#ifdef EXCCNN_TRACE
 			std::cout << "layers[" << i << "].set_optimizer = " << o << std::endl;
-#endif
+#endif  // EXCCNN_TRACE
 			layers[i].set_optimizer(o);
 		}
 	}
@@ -101,24 +101,24 @@ public:
 
   void update_forward(void){
 
-#ifdef DEBUG
+#ifdef EXCCNN_TRACE
 		std::cout << "input: " << layers[0];
-#endif
+#endif  // EXCCNN_TRACE
     //iteratively update the neural network forward from 2nd layer to last layer
     //l = 0 is first layer, l = 1 is 2nd layer
     auto n_layers = layers.size();
     for (int_type l = 1; l < n_layers ; l++){
       layers[l].update_forward(l, layers[l-1], weights);
-#ifdef DEBUG
+#ifdef EXCCNN_TRACE
       std::cout << "output: l=" << l << " : " << layers[l];
-#endif
+#endif  // EXCCNN_TRACE
     }
   }
 
   void update_backward(void) {
-#ifdef DEBUG
+#ifdef EXCCNN_TRACE
     std::cout << "prior to update_backward weights: \n" << weights;
-#endif
+#endif  // EXCCNN_TRACE
     // Calculate delta from output layer and expected value
     std::vector<cnn::real_type> delta;
     std::vector<cnn::real_type> prev_delta;
@@ -128,9 +128,9 @@ public:
     for (auto j = 0u; j < layer_neuron_size; j ++){
       //delta[j] = 2*(layers[1][j]-expected[j])*sigmoid(layers[1][j])*(1 - sigmoid(layers[1][j]));
       delta[j] = (layers[n_layers-1][j]-expected[j]);
-#ifdef DEBUG
+#ifdef EXCCNN_TRACE
       printf("l=%d, j=%d: %f %f delta[j]=%f\n", n_layers-1, j, layers[n_layers-1][j], expected[j], delta[j]);
-#endif
+#endif  // EXCCNN_TRACE
     }
 
     //iteratively update the neural network backward from last layer to 2nd layer
@@ -139,17 +139,17 @@ public:
       layers[l].update_backward(l, layers[l-1], weights, delta, prev_delta);
       std::swap(delta, prev_delta); // efficiently swap the underlying memory pointer without actually copying
     }
-#ifdef DEBUG
+#ifdef EXCCNN_TRACE
     std::cout << "after update_backward weights: \n" << weights;
-#endif
+#endif  // EXCCNN_TRACE
   }
 
   void update(const cnn::int_type max_iter=1000, const cnn::real_type threshold=1.e-6) {
     cnn::int_type iter = 0;
-#ifdef DEBUG
+#ifdef EXCCNN_TRACE
     std::cout << "expected = " << expected << std::endl;
     std::cout << "layers.back().values() = " << layers.back() << std::endl;
-#endif
+#endif  // EXCCNN_TRACE
     cnn::real_type mse = cost_function(layers.back().values(), expected.values());
     if(epoch_frequency < 100)
       epoch_frequency = 100;
@@ -180,12 +180,12 @@ public:
         for (auto& weight_pair : weights.w) {
             weight_pair.second.reset(learning_rate, momentum, decay);
         }
-#ifdef DEBUG
+#ifdef EXCCNN_TRACE
         std::cout << "Reset learning parameters:"
                   << "\n  Learning rate: " << learning_rate
                   << "\n  Momentum: " << momentum
                   << "\n  Decay: " << decay << std::endl;
-#endif
+#endif  // EXCCNN_TRACE
     }
 
     // Method to adjust learning rate during training
@@ -194,9 +194,9 @@ public:
             auto& connector = weight_pair.second;
             connector.learning_rate *= factor;
         }
-#ifdef DEBUG
+#ifdef EXCCNN_TRACE
         std::cout << "Adjusted learning rate by factor: " << factor << std::endl;
-#endif
+#endif  // EXCCNN_TRACE
     }
 
     // Get current learning rate (average across all connectors)
@@ -227,9 +227,9 @@ public:
         // Reset expected values
         std::fill(expected.values().begin(), expected.values().end(), real_type{});
 
-#ifdef DEBUG
+#ifdef EXCCNN_TRACE
         std::cout << "Network reset completed" << std::endl;
-#endif
+#endif  // EXCCNN_TRACE
     }
 
     // Optional: Add a method to reset weights to their initial values
@@ -250,13 +250,13 @@ public:
                 }
             }
         }
-#ifdef DEBUG
+#ifdef EXCCNN_TRACE
         std::cout << "Weights reinitialized" << std::endl;
-#endif
+#endif  // EXCCNN_TRACE
     }
 
 };
 
-};
+}  // namespace cnn
 
-#endif
+#endif  // NN_HPP

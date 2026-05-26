@@ -1,45 +1,27 @@
 #ifndef NN_HPP
 #define NN_HPP
 
-#include "yml_oarchive.hpp"
-#include "yml_iarchive.hpp"
-
+#include <boost/serialization/nvp.hpp>
 #include <boost/serialization/vector.hpp>
-#include <boost/serialization/utility.hpp> // serialize pair
-#include <boost/serialization/array.hpp>
-#include <boost/serialization/set.hpp>
-#include <boost/serialization/optional.hpp> // serialize boost::optional
 
-#include <boost/archive/text_oarchive.hpp>
-#include <boost/archive/text_iarchive.hpp>
-#include <boost/serialization/unordered_map.hpp>
-
-#include <boost/numeric/ublas/matrix.hpp>
-#include <boost/numeric/ublas/io.hpp>
-#include <vector>
-#include <fstream>
-#include <unordered_map>
 #include <algorithm>
-
-#include <stdio.h>
-#include <stdlib.h>
-#include <cassert>
+#include <cstdio>
+#include <iostream>
+#include <vector>
 
 #include "typedef.hpp"
 #include "connector.hpp"
+#include "layer.hpp"
 #include "optimizer.hpp"
 #include "sparse_array.hpp"
+#include "weights.hpp"
 
-using namespace boost::numeric::ublas;
-
-namespace cnn{
+namespace cnn {
 
 // A basic neural network base class, it must be extended with customized
 // initialize method
 class NeuralNetwork {
 public:
-  //////////////////////////////////////////////////////////////////////////////
-  // serialized members                                                       //
   //////////////////////////////////////////////////////////////////////////////
   int n_layers;
 	Layer expected;
@@ -158,7 +140,7 @@ public:
       //delta[j] = 2*(layers[1][j]-expected[j])*sigmoid(layers[1][j])*(1 - sigmoid(layers[1][j]));
       delta[j] = (layers[n_layers-1][j]-expected[j]);
 #ifdef DEBUG
-      printf("l=%d, j=%d: %f %f delta[j]=%f\n", n_layers-1, j, layers[n_layers-1][j], expected[j], delta[j]);
+      std::printf("l=%d, j=%d: %f %f delta[j]=%f\n", n_layers-1, j, layers[n_layers-1][j], expected[j], delta[j]);
 #endif
     }
 

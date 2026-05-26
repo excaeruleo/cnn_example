@@ -86,7 +86,7 @@ private:
   template <typename Ar>
   void save(Ar& ar, unsigned /*version*/) const
   {
-    ar & BOOST_SERIALIZATION_NVP(name_);
+    ar & boost::serialization::make_nvp("name", name_);
   }
 
   /**
@@ -101,7 +101,7 @@ private:
   template <typename Ar>
   void load(Ar& ar, unsigned /*version*/)
   {
-    ar & BOOST_SERIALIZATION_NVP(name_);
+    ar & boost::serialization::make_nvp("name", name_);
     act_ = get_activation(name_);
   }
 

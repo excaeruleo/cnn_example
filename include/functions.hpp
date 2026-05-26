@@ -2,6 +2,8 @@
 #define FUNCTIONS_HPP
 
 #include <optional>
+#include <string_view>
+#include <utility>
 #include <vector>
 
 #include "exccnn/dllexport.h"
@@ -45,6 +47,28 @@ real_type softmax(const real_type x);
 EXCCNN_PUBLIC
 real_type derivative_softmax(const real_type x);
 
+/**
+ * Structure holding an activation function and its derivative.
+ */
+struct activation {
+  unary_real_function f;  // function
+  unary_real_function g;  // gradient
+
+  // convert into std::pair for std::tie interop
+  std::pair<unary_real_function, unary_real_function> pair() const noexcept
+  {
+    return {f, g};
+  }
+};
+
+/**
+ * Obtain the activation + derivative function given a string identifier.
+ *
+ * @param name Activation name, e.g. `"linear"`, `"relu"`, etc.
+ */
+EXCCNN_PUBLIC
+activation get_activation(std::string_view name);
+
 // Optional: Vector version of softmax (often useful)
 EXCCNN_PUBLIC
 std::vector<real_type> softmax_vector(const std::vector<real_type>& x);
@@ -79,8 +103,17 @@ EXCCNN_PUBLIC
 real_type kl_divergence_loss(const std::vector<real_type>& predicted,
                              const std::vector<real_type>& target);
 
+// TODO: deprecate in favor of inner_product_real_function
 typedef real_type (*CostFunctionPointer)(const std::vector<real_type>&,
                                          const std::vector<real_type>&);
+
+/**
+ * Obtain the cost function given a string identifier.
+ *
+ * @param name Cost function name, i.e. "hinge_loss", "mse_loss", etc.
+ */
+EXCCNN_PUBLIC
+inner_product_real_function get_cost_function(std::string_view name);
 
 }  // namespace cnn
 

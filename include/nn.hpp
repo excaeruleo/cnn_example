@@ -131,6 +131,10 @@ public:
   /**
    * Set the cost function.
    *
+   * This function should be called from `initialize()` to set the neural
+   * network's cost function and is the only supported method for setting the
+   * cost function, i.e. do not attempt to set the name + function separately.
+   *
    * @param name Cost function name, e.g. `"mse_loss"`, `"huber_loss"`, etc.
    */
   auto& cost_function(std::string name)

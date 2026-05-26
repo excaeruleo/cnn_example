@@ -1,6 +1,7 @@
 #ifndef NN_HPP
 #define NN_HPP
 
+#include <boost/serialization/access.hpp>
 #include <boost/serialization/nvp.hpp>
 #include <boost/serialization/split_member.hpp>
 #include <boost/serialization/vector.hpp>
@@ -26,19 +27,25 @@ namespace cnn {
 class NeuralNetwork {
 public:
   //////////////////////////////////////////////////////////////////////////////
-  int n_layers;
+  // TODO: these members should be private
+  int n_layers{};
 	Layer expected;
 	std::vector<Layer> layers;
   Weights weights;
-  int_type epoch_frequency;
-  inner_product_real_function cost_function;
+  int_type epoch_frequency{};
+
+private:
+  std::string cost_function_name_;               // cost function name
+  inner_product_real_function cost_function_{};  // cost function
   //////////////////////////////////////////////////////////////////////////////
+
+  // enable save/load access
+  friend class boost::serialization::access;
 
   /**
    * Boost serialization function.
    *
-   * This serializes all the public members. The cost function is mapped to a
-   * string name that is written to the archive instead.
+   * This serializes all the public members and the cost function name.
    *
    * @tparam Ar Boost.Serialization output archive
    *
@@ -52,10 +59,8 @@ public:
       BOOST_SERIALIZATION_NVP(expected) &
       BOOST_SERIALIZATION_NVP(layers) &
       BOOST_SERIALIZATION_NVP(weights) &
-      BOOST_SERIALIZATION_NVP(epoch_frequency);
-    // save cost function identifier
-    std::string cf_name{get_cost_function_name(cost_function)};
-    ar & boost::serialization::make_nvp("cost_function", cf_name);
+      BOOST_SERIALIZATION_NVP(epoch_frequency) &
+      boost::serialization::make_nvp("cost_function", cost_function_name_);
   }
 
   /**
@@ -75,16 +80,16 @@ public:
       BOOST_SERIALIZATION_NVP(expected) &
       BOOST_SERIALIZATION_NVP(layers) &
       BOOST_SERIALIZATION_NVP(weights) &
-      BOOST_SERIALIZATION_NVP(epoch_frequency);
-    // load cost function from identifier
-    std::string cf_name;
-    ar & boost::serialization::make_nvp("cost_function", cf_name);
-    cost_function = get_cost_function(cf_name);
+      BOOST_SERIALIZATION_NVP(epoch_frequency) &
+      boost::serialization::make_nvp("cost_function", cost_function_name_);
+    // load cost function from name
+    cost_function_ = get_cost_function(cost_function_name_);
   }
 
   // implement serialize()
   BOOST_SERIALIZATION_SPLIT_MEMBER()
 
+public:
 	bool operator==(NeuralNetwork const& nn_) const{
     return nn_.n_layers==n_layers
         && nn_.layers  == layers;
@@ -108,6 +113,32 @@ public:
   }
 
   virtual bool initialize() = 0; // Pure virtual function so this class must be extended.
+
+  /**
+   * Return the cost function name.
+   *
+   * If the name is the empty string then no cost function has been set.
+   */
+  auto& cost_function_name() const noexcept { return cost_function_name_; }
+
+  /**
+   * Return the cost function pointer.
+   *
+   * If the function pointer is `nullptr` then no const function has been set.
+   */
+  auto cost_function() const noexcept { return cost_function_; }
+
+  /**
+   * Set the cost function.
+   *
+   * @param name Cost function name, e.g. `"mse_loss"`, `"huber_loss"`, etc.
+   */
+  auto& cost_function(std::string name)
+  {
+    cost_function_name_ = std::move(name);
+    cost_function_ = get_cost_function(cost_function_name_);
+    return *this;
+  }
 
   /**
    * Set the layer activation function and derivative.
@@ -194,7 +225,7 @@ public:
     std::cout << "expected = " << expected << std::endl;
     std::cout << "layers.back().values() = " << layers.back() << std::endl;
 #endif
-    cnn::real_type mse = cost_function(layers.back().values(), expected.values());
+    cnn::real_type mse = cost_function_(layers.back().values(), expected.values());
     if(epoch_frequency < 100)
       epoch_frequency = 100;
     while(mse > threshold and iter < max_iter){
@@ -298,9 +329,8 @@ public:
         std::cout << "Weights reinitialized" << std::endl;
 #endif
     }
-
 };
 
-};
+}  // namespace cnn
 
-#endif
+#endif  // NN_HPP

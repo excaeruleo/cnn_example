@@ -63,7 +63,7 @@ bool simple_neural_network::initialize(){
   }
 
   // MSE loss
-  cost_function = cnn::mse_loss;
+  cost_function("mse_loss");
 
   std::cout << "input: " << layers[0];
   std::cout << "output: " << layers[1];

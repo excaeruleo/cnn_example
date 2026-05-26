@@ -356,4 +356,21 @@ inner_product_real_function get_cost_function(std::string_view name)
     return map.at(name);
 }
 
+std::string_view get_cost_function_name(inner_product_real_function func)
+{
+#define EXCCNN_COST_NAME_MAP_ENTRY(name) {name, #name}
+    static std::map<inner_product_real_function, std::string_view> map{
+        EXCCNN_COST_NAME_MAP_ENTRY(cross_entropy_loss),
+        EXCCNN_COST_NAME_MAP_ENTRY(mse_loss),
+        EXCCNN_COST_NAME_MAP_ENTRY(mae_loss),
+        // note: special treatement for huber_loss due to default arguments
+        {huber_loss_, "huber_loss"},
+        EXCCNN_COST_NAME_MAP_ENTRY(binary_cross_entropy_loss),
+        EXCCNN_COST_NAME_MAP_ENTRY(hinge_loss),
+        EXCCNN_COST_NAME_MAP_ENTRY(kl_divergence_loss)
+    };
+#undef EXCCNN_COST_NAME_MAP_ENTRY
+    return map.at(func);
+}
+
 }  // namespace cnn

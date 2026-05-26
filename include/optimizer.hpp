@@ -2,6 +2,7 @@
 #define OPTIMIZER_HPP
 
 #include <boost/serialization/nvp.hpp>
+#include <boost/serialization/split_member.hpp>
 #include <boost/serialization/string.hpp>
 
 #include <ostream>
@@ -22,12 +23,35 @@ public:
   unary_real_function activate;
   unary_real_function derivative_funcptr;
 
-  // TODO: split into save/load where load uses to_activation()
-  template<class Ar>
-  void serialize(Ar& ar, unsigned /*version*/)
+  /**
+   * Boost serialization function.
+   *
+   * This saves just the name of the `optimizer` object.
+   *
+   * @tparam Ar Boost.Serialization output archive
+   */
+  template <typename Ar>
+  void save(Ar& ar, unsigned /*version*/) const
   {
     ar & BOOST_SERIALIZATION_NVP(name);
   }
+
+  /**
+   * Boost de-serialization function.
+   *
+   * This loads the `optimizer` name and then uses it set the activation.
+   *
+   * @tparam Ar Boost.Serialization input archive
+   */
+  template <typename Ar>
+  void load(Ar& ar, unsigned /*version*/)
+  {
+    ar & BOOST_SERIALIZATION_NVP(name);
+    std::tie(activate, derivative_funcptr) = get_activation(name).pair();
+  }
+
+  // implement serialize()
+  BOOST_SERIALIZATION_SPLIT_MEMBER()
 
   /**
    * Default ctor.

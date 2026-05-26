@@ -53,12 +53,6 @@ real_type derivative_softmax(const real_type x);
 struct activation {
   unary_real_function f;  // function
   unary_real_function g;  // gradient
-
-  // convert into std::pair for std::tie interop
-  std::pair<unary_real_function, unary_real_function> pair() const noexcept
-  {
-    return {f, g};
-  }
 };
 
 /**
@@ -102,10 +96,6 @@ real_type hinge_loss(const std::vector<real_type>& predicted,
 EXCCNN_PUBLIC
 real_type kl_divergence_loss(const std::vector<real_type>& predicted,
                              const std::vector<real_type>& target);
-
-// TODO: deprecate in favor of inner_product_real_function
-typedef real_type (*CostFunctionPointer)(const std::vector<real_type>&,
-                                         const std::vector<real_type>&);
 
 /**
  * Obtain the cost function given a string identifier.

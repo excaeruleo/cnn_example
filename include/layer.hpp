@@ -143,7 +143,7 @@ public:
       for(int_type j = 1; j < size(); j ++){
         prev_delta[k] +=  weights.w[it{l, j, k}].weight * delta[j];
       }
-      prev_delta[k] *= layer_optimizer.derivative_funcptr(prev[k]);
+      prev_delta[k] *= layer_optimizer.derivative(prev[k]);
     }
 
     // Update weights in current layer

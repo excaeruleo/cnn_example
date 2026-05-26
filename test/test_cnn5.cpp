@@ -133,7 +133,7 @@ int main(){
 
 	// Train the neural network with the 1000 images as training set
 	nn.initialize();
-	nn.set_optimizer(cnn::optimizer("sigmoid", cnn::sigmoid, cnn::derivative_sigmoid));
+  nn.set_optimizer("sigmoid");
   for (int i = 0; i < 1000; i ++){
 		std::cout << "processing mnist training set #" << i << std::endl;
     nn.reset_input(pixelValues, i);

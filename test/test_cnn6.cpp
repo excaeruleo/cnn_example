@@ -76,9 +76,9 @@ bool simple_neural_network::initialize() {
     }
 
     cost_function = cnn::cross_entropy_loss;
-    layers[0].set_optimizer(cnn::optimizer("relu", cnn::relu, cnn::derivative_relu));
-    layers[1].set_optimizer(cnn::optimizer("relu", cnn::relu, cnn::derivative_relu));
-    //layers.back().set_optimizer(cnn::optimizer("softmax", cnn::softmax, cnn::derivative_softmax));
+    layers[0].set_optimizer("relu");
+    layers[1].set_optimizer("relu");
+    //layers.back().set_optimizer("softmax");
 
     return true;
 }

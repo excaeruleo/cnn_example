@@ -27,9 +27,8 @@
 
 #include "typedef.hpp"
 #include "connector.hpp"
+#include "optimizer.hpp"
 #include "sparse_array.hpp"
-
-#define NVP(a) BOOST_SERIALIZATION_NVP(a)
 
 using namespace boost::numeric::ublas;
 
@@ -37,20 +36,40 @@ namespace cnn{
 
 // A basic neural network base class, it must be extended with customized
 // initialize method
-class NeuralNetwork{
-
+class NeuralNetwork {
 public:
+  //////////////////////////////////////////////////////////////////////////////
+  // serialized members                                                       //
+  //////////////////////////////////////////////////////////////////////////////
   int n_layers;
-	cnn::Layer expected;
-	std::vector< cnn::Layer > layers;
-  cnn::Weights weights;
+	Layer expected;
+	std::vector<Layer> layers;
+  Weights weights;
   int_type epoch_frequency;
-  cnn::CostFunctionPointer cost_function;
+  //////////////////////////////////////////////////////////////////////////////
+  // TODO: need to serialize cost function too
+  inner_product_real_function cost_function;
 
-	template<class Ar>
-	void serialize(Ar& ar, unsigned){
-		ar & NVP(n_layers) & NVP(expected) & NVP(layers) & NVP(weights) & NVP(epoch_frequency);
-	}
+  /**
+   * Boost serialiation function for the neural network base class.
+   *
+   * This serializes all the public members except for the cost function.
+   *
+   * @tparam Ar Boost.Serialization archive type
+   *
+   * @param ar Input/output archive
+   */
+  template <typename Ar>
+  void serialize(Ar& ar, unsigned /*version*/)
+  {
+    ar &
+      BOOST_SERIALIZATION_NVP(n_layers) &
+      BOOST_SERIALIZATION_NVP(expected) &
+      BOOST_SERIALIZATION_NVP(layers) &
+      BOOST_SERIALIZATION_NVP(weights) &
+      BOOST_SERIALIZATION_NVP(epoch_frequency);
+  }
+
 	bool operator==(NeuralNetwork const& nn_) const{
     return nn_.n_layers==n_layers
         && nn_.layers  == layers;
@@ -74,6 +93,16 @@ public:
   }
 
   virtual bool initialize() = 0; // Pure virtual function so this class must be extended.
+
+  /**
+   * Set the layer activation function and derivative.
+   *
+   * @param name Activation function name, e.g. `"relu"`, `"linear"`
+   */
+  void set_optimizer(std::string name)
+  {
+    set_optimizer(optimizer{std::move(name)});
+  }
 
 	void set_optimizer(const optimizer & o){
 #ifdef DEBUG

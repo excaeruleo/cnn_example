@@ -65,6 +65,17 @@ public:
     layer_type = 0;
     layer_name = "numerical";
   }
+
+  /**
+   * Set the layer activation function and derivative.
+   *
+   * @param name Activation function name, e.g. `"relu"`, `"linear"`
+   */
+  void set_optimizer(std::string name)
+  {
+    set_optimizer(optimizer{std::move(name)});
+  }
+
 	void set_optimizer(const optimizer & o){
 #ifdef DEBUG
 		std::cout << "set_optimizer = " << o << std::endl;

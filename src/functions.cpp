@@ -13,28 +13,34 @@
 
 namespace cnn {
 
-real_type linear(const real_type x){
+real_type linear(const real_type x)
+{
 	return x;
 }
 
-real_type derivative_linear(const real_type x){
+real_type derivative_linear(const real_type /*x*/)
+{
 	return 1;
 }
 
-real_type sigmoid(const real_type x){
-	return 1./(1. + exp(-x));
+real_type sigmoid(const real_type x)
+{
+	return 1 / (1 + std::exp(-x));
 }
 
-real_type derivative_sigmoid(const real_type x){
-	return sigmoid(x)*(1. - sigmoid(x));
+real_type derivative_sigmoid(const real_type x)
+{
+	return sigmoid(x) * (real_type{1} - sigmoid(x));
 }
 
-real_type relu(const real_type x) {
-	return std::max(static_cast<real_type>(0.0), x);
+real_type relu(const real_type x)
+{
+	return std::max(real_type{}, x);
 }
 
-real_type derivative_relu(const real_type x) {
-	return x > 0.0 ? 1.0 : 0.0;
+real_type derivative_relu(const real_type x)
+{
+	return x > real_type{} ? real_type{1} : real_type{};
 }
 
 activation get_activation(std::string_view name)

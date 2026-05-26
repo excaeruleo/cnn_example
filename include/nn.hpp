@@ -2,15 +2,18 @@
 #define NN_HPP
 
 #include <boost/serialization/nvp.hpp>
+#include <boost/serialization/split_member.hpp>
 #include <boost/serialization/vector.hpp>
 
 #include <algorithm>
 #include <cstdio>
 #include <iostream>
+#include <string>
 #include <vector>
 
 #include "typedef.hpp"
 #include "connector.hpp"
+#include "functions.hpp"
 #include "layer.hpp"
 #include "optimizer.hpp"
 #include "sparse_array.hpp"
@@ -28,21 +31,21 @@ public:
 	std::vector<Layer> layers;
   Weights weights;
   int_type epoch_frequency;
-  //////////////////////////////////////////////////////////////////////////////
-  // TODO: need to serialize cost function too
   inner_product_real_function cost_function;
+  //////////////////////////////////////////////////////////////////////////////
 
   /**
-   * Boost serialiation function for the neural network base class.
+   * Boost serialization function.
    *
-   * This serializes all the public members except for the cost function.
+   * This serializes all the public members. The cost function is mapped to a
+   * string name that is written to the archive instead.
    *
-   * @tparam Ar Boost.Serialization archive type
+   * @tparam Ar Boost.Serialization output archive
    *
-   * @param ar Input/output archive
+   * @param ar Output archive
    */
   template <typename Ar>
-  void serialize(Ar& ar, unsigned /*version*/)
+  void save(Ar& ar, unsigned /*version*/) const
   {
     ar &
       BOOST_SERIALIZATION_NVP(n_layers) &
@@ -50,7 +53,37 @@ public:
       BOOST_SERIALIZATION_NVP(layers) &
       BOOST_SERIALIZATION_NVP(weights) &
       BOOST_SERIALIZATION_NVP(epoch_frequency);
+    // save cost function identifier
+    std::string cf_name{get_cost_function_name(cost_function)};
+    ar & boost::serialization::make_nvp("cost_function", cf_name);
   }
+
+  /**
+   * Boost de-serialiation function.
+   *
+   * This retrieves the cost function from the serialized string name.
+   *
+   * @tparam Ar Boost.Serialization input type
+   *
+   * @param ar Input archive
+   */
+  template <typename Ar>
+  void load(Ar& ar, unsigned /*version*/)
+  {
+    ar &
+      BOOST_SERIALIZATION_NVP(n_layers) &
+      BOOST_SERIALIZATION_NVP(expected) &
+      BOOST_SERIALIZATION_NVP(layers) &
+      BOOST_SERIALIZATION_NVP(weights) &
+      BOOST_SERIALIZATION_NVP(epoch_frequency);
+    // load cost function from identifier
+    std::string cf_name;
+    ar & boost::serialization::make_nvp("cost_function", cf_name);
+    cost_function = get_cost_function(cf_name);
+  }
+
+  // implement serialize()
+  BOOST_SERIALIZATION_SPLIT_MEMBER()
 
 	bool operator==(NeuralNetwork const& nn_) const{
     return nn_.n_layers==n_layers

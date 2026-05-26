@@ -3,37 +3,24 @@
 #include "yml_oarchive.hpp"
 #include "yml_iarchive.hpp"
 
-#include <boost/serialization/vector.hpp>
-#include <boost/serialization/utility.hpp> // serialize pair
-#include <boost/serialization/array.hpp>
-#include <boost/serialization/set.hpp>
-#include <boost/serialization/optional.hpp> // serialize boost::optional
+#include <boost/serialization/nvp.hpp>
 
+#include <cstdlib>
 #include <fstream>
 #include <iostream>
 #include <string>
 #include <vector>
 #include <cmath>
 
-#include "typedef.hpp"
-#include "connection.hpp"
-#include "functions.hpp"
-#include "neuron.hpp"
-#include "layer.hpp"
-#include "utils.hpp"
-#include "weights.hpp"
 #include "nn.hpp"
 
-#define NVP(a) BOOST_SERIALIZATION_NVP(a) 
-
 class simple_neural_network : public cnn::NeuralNetwork {
-
 public:
   bool initialize() override;
 };
 
-bool simple_neural_network::initialize() {
-
+bool simple_neural_network::initialize()
+{
 	//n_layers = 2;
 
 	//cnn::Layer input_layer = cnn::Layer(4); // make a input layer of 4 neurons.
@@ -52,45 +39,31 @@ bool simple_neural_network::initialize() {
   //expected[1] = 0.;
   //expected[2] = 0.;
   //expected[3] = 0.;
-
-  // MSE loss
-  // FIXME: nn, optimizer, etc. serialization, e.g. anything involving function
-  // pointers, is lossy. so we need to set function pointers manually to ensure
-  // "de-serialized" models don't crash if they aren't default initialized. in
-  // this case we know test_cnn2.cpp is already using mse_loss and defaulted
-  // optimizer objects, but in general this is not a root cause fix.
-  cost_function = cnn::mse_loss;
-
-  // should have been reconstituted already
-  std::cout << "input: " << layers[0];
-  std::cout << "output: " << layers[1];
-  std::cout << "weights: " << weights;
-
 	return true;
-
 }
 
-int main() {
-
+int main()
+{
+  // populate from YAML archive
 	simple_neural_network nn;
 	{
 		std::ifstream ifs{"trained2.yml"};
 		boost::archive::yml_iarchive yia{ifs};
-		yia
-			>> NVP(nn)
-		;
+		yia >> BOOST_SERIALIZATION_NVP(nn);
 	}
-  // see initialize() FIXME above
-  nn.initialize();
+  // print input, output, weights
+  std::cout <<
+    "input: " << nn.layers[0] <<
+    "output: " << nn.layers[1] <<
+    "weights: " << nn.weights << std::flush;
+  // update + print weights again
   nn.update();
   std::cout << "weights: " << nn.weights;
-
+  // write back to YAML archive
 	{
 		std::ofstream ofs{"trained2.yml"};
 		boost::archive::yml_oarchive yoa{ofs};
-		yoa
-			<< NVP(nn)
-		;
+		yoa << BOOST_SERIALIZATION_NVP(nn);
 	}
-
+  return EXIT_SUCCESS;
 }

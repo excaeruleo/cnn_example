@@ -29,6 +29,8 @@ public:
    * This saves just the name of the `optimizer` object.
    *
    * @tparam Ar Boost.Serialization output archive
+   *
+   * @param ar Output archive
    */
   template <typename Ar>
   void save(Ar& ar, unsigned /*version*/) const
@@ -42,6 +44,8 @@ public:
    * This loads the `optimizer` name and then uses it set the activation.
    *
    * @tparam Ar Boost.Serialization input archive
+   *
+   * @param ar Input archive
    */
   template <typename Ar>
   void load(Ar& ar, unsigned /*version*/)

@@ -115,14 +115,6 @@ typedef real_type (*CostFunctionPointer)(const std::vector<real_type>&,
 EXCCNN_PUBLIC
 inner_product_real_function get_cost_function(std::string_view name);
 
-/**
- * Obtain the cost function identifier given the cost function.
- *
- * @param func Cost function
- */
-EXCCNN_PUBLIC
-std::string_view get_cost_function_name(inner_product_real_function func);
-
 }  // namespace cnn
 
 #endif  // FUNCTIONS_HPP

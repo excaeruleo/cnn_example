@@ -1,6 +1,6 @@
 /**
  * @file test_optimizer.cpp
- * @author David Huang, Derek HUang
+ * @author David Huang, Derek Huang
  * @brief C++ program testing optimizer construction + stream
  * @copyright MIT License
  */

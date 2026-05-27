@@ -1,15 +1,15 @@
 #ifndef OPTIMIZER_HPP
 #define OPTIMIZER_HPP
 
-#include <boost/serialization/access.hpp>
-#include <boost/serialization/nvp.hpp>
-#include <boost/serialization/split_member.hpp>
-#include <boost/serialization/string.hpp>
-
 #include <ostream>
 #include <string>
 #include <tuple>
 #include <utility>
+
+#include <boost/serialization/access.hpp>
+#include <boost/serialization/nvp.hpp>
+#include <boost/serialization/split_member.hpp>
+#include <boost/serialization/string.hpp>
 
 #include "typedef.hpp"
 #include "functions.hpp"
@@ -49,7 +49,7 @@ public:
   /**
    * Invoke the activation function.
    */
-  real_type activate(real_type x) const
+  real_type operator()(real_type x) const
   {
     return act_.f(x);
   }
@@ -57,7 +57,7 @@ public:
   /**
    * Invoke the activation function derivative.
    */
-  real_type derivative(real_type x) const
+  real_type grad(real_type x) const
   {
     return act_.g(x);
   }

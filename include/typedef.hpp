@@ -1,9 +1,6 @@
 #ifndef TYPEDEF_HPP
 #define TYPEDEF_HPP
 
-// TODO: remove
-#define NVP(a) BOOST_SERIALIZATION_NVP(a)
-
 #include <vector>
 
 namespace cnn {

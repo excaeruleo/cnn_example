@@ -1,66 +1,46 @@
 #ifndef NEURON_HPP
 #define NEURON_HPP
 
-#include "yml_oarchive.hpp"
-#include "yml_iarchive.hpp"
+#include <ostream>
 
-#include <boost/serialization/vector.hpp>
-#include <boost/serialization/utility.hpp> // serialize pair
-#include <boost/serialization/array.hpp>
-#include <boost/serialization/set.hpp>
-#include <boost/serialization/optional.hpp> // serialize boost::optional
-
-#include <boost/numeric/ublas/matrix.hpp>
-#include <boost/numeric/ublas/io.hpp>
-#include <vector>
-
-#include <stdio.h> 
-#include <stdlib.h> 
-#include <cassert>
+#include <boost/serialization/access.hpp>
+#include <boost/serialization/nvp.hpp>
 
 #include "typedef.hpp"
 
-#define NVP(a) BOOST_SERIALIZATION_NVP(a)
+namespace cnn {
 
-using namespace boost::numeric::ublas;
-
-namespace cnn{
-
-
-class Neuron{
-
+// TODO: document + add arithmetic operators
+class Neuron {
 public:
-  real_type value;
-
-  real_type get() const {
-    return value;
-  }
-  void set_value(const real_type value_) {
-    value = value_;
-  }
-	template<class Ar>
-	void serialize(Ar& ar, unsigned){
-		ar &  NVP(value);
-	}
-  Neuron(){ 
-     default_initialize();
-  }
+  real_type value{};
 
   // ostream operator
-  friend std::ostream& operator<< (std::ostream& stream, const Neuron & n) {
-
-		std::cout  << " : value = " << n.value << std::endl;
-
-    return stream;
+  friend std::ostream& operator<<(std::ostream& out, const Neuron& n)
+  {
+    // TODO: maybe consider not writing a newline
+		return out << " : value = " << n.value << "\n";
   }
-  
+
+  /**
+   * Return a `Neuron` with a negated value.
+   */
+  auto operator-() const noexcept
+  {
+    return Neuron{-value};
+  }
+
 private:
-  void default_initialize(){
-    value = 0.;
-  }
+  // enable serialize() access
+  friend boost::serialization::access;
+
+  template <typename Ar>
+	void serialize(Ar& ar, unsigned /*version*/)
+  {
+		ar & BOOST_SERIALIZATION_NVP(value);
+	}
 };
 
-};
+}  // namespace cnn
 
-#endif
-
+#endif  // NEURON_HPP

@@ -1,48 +1,114 @@
 #ifndef OPTIMIZER_HPP
 #define OPTIMIZER_HPP
 
-#include "yml_oarchive.hpp"
-#include "yml_iarchive.hpp"
-
-#include <boost/serialization/vector.hpp>
-#include <boost/serialization/utility.hpp> // serialize pair
-#include <boost/serialization/array.hpp>
-#include <boost/serialization/set.hpp>
-#include <boost/serialization/optional.hpp> // serialize boost::optional
-
-#define NVP(a) BOOST_SERIALIZATION_NVP(a)
-
+#include <ostream>
 #include <string>
+#include <tuple>
+#include <utility>
+
+#include <boost/serialization/access.hpp>
+#include <boost/serialization/nvp.hpp>
+#include <boost/serialization/split_member.hpp>
+#include <boost/serialization/string.hpp>
+
 #include "typedef.hpp"
 #include "functions.hpp"
 
-namespace cnn{
+namespace cnn {
 
-	/* Provide function pointers to activatation function and derivative of activation function */
-	class optimizer{
-		public:
-      typedef cnn::real_type (*FunctionPointer)(cnn::real_type);
+/**
+ * Layer optimizer class.
+ *
+ * This holds function pointers to the activation function and its derivative.
+ */
+class optimizer {
+public:
+  /**
+   * Default ctor.
+   *
+   * This initializes the `"linear"` activation function.
+   */
+  optimizer() : name_{"linear"}, act_{linear, derivative_linear} {}
 
-      std::string name;
-	    FunctionPointer activate;
-	    FunctionPointer derivative_funcptr;
+  /**
+   * Ctor.
+   *
+   * Construct from a valid activation function identifier.
+   *
+   * @param name Activation function, e.g. `"relu"`, `"linear"`, etc.
+   */
+  optimizer(std::string name)
+    : name_{std::move(name)}, act_{get_activation(name_)}
+  {}
 
-		template<class Ar>
-		void serialize(Ar& ar, unsigned){
-			ar & NVP(name);
-		}
+  /**
+   * Return the name of the layer activation.
+   */
+  auto& name() const noexcept { return name_; }
 
-		// Default constructor using linear function
-		optimizer(): name ("linear"), activate(linear), derivative_funcptr(derivative_linear) {}
-		// Initialize with a new optimizer
-		optimizer(std::string name, cnn::real_type (*funcptr) (cnn::real_type), cnn::real_type (*derivative_funcptr) (cnn::real_type) ): name (name), activate(funcptr), derivative_funcptr(derivative_funcptr){
-		}
-		optimizer(const optimizer & o): name (o.name), activate(o.activate), derivative_funcptr(o.derivative_funcptr) {}
-		friend std::ostream& operator<< (std::ostream& stream, const optimizer & o) {
-			std::cout << "optimizer = " << o.name << std::endl;
-			return stream;
-		}
-	};
-}
+  /**
+   * Invoke the activation function.
+   */
+  real_type operator()(real_type x) const
+  {
+    return act_.f(x);
+  }
 
-#endif
+  /**
+   * Invoke the activation function derivative.
+   */
+  real_type grad(real_type x) const
+  {
+    return act_.g(x);
+  }
+
+  friend std::ostream& operator<<(std::ostream& out, const optimizer& opt)
+  {
+    return out << "optimizer = " << opt.name();
+  }
+
+private:
+  std::string name_;  // activation name
+  activation act_;    // activation function + derivative pointers
+
+  // enable save/load access
+  friend class boost::serialization::access;
+
+  /**
+   * Boost serialization function.
+   *
+   * This saves just the name of the `optimizer` object.
+   *
+   * @tparam Ar Boost.Serialization output archive
+   *
+   * @param ar Output archive
+   */
+  template <typename Ar>
+  void save(Ar& ar, unsigned /*version*/) const
+  {
+    ar & boost::serialization::make_nvp("name", name_);
+  }
+
+  /**
+   * Boost de-serialization function.
+   *
+   * This loads the `optimizer` name and then uses it set the activation.
+   *
+   * @tparam Ar Boost.Serialization input archive
+   *
+   * @param ar Input archive
+   */
+  template <typename Ar>
+  void load(Ar& ar, unsigned /*version*/)
+  {
+    ar & boost::serialization::make_nvp("name", name_);
+    act_ = get_activation(name_);
+  }
+
+  // implement serialize()
+  BOOST_SERIALIZATION_SPLIT_MEMBER()
+};
+
+}  // namespace cnn
+
+#endif  // OPTIMIZER_HPP

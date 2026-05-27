@@ -193,11 +193,9 @@ exccnn_add_test(test_map_archive LIBRARIES Boost::headers Boost::serialization)
 exccnn_add_test(test_matrix LIBRARIES Boost::headers cnnlib)
 
 # test_neuron: test CNN neuron class
-# FIXME: test just includes neuron.hpp and returns zero
 exccnn_add_test(test_neuron LIBRARIES cnnlib)
 
 # test_optimizer: test CNN optimizer class
-# note: mostly a smoke test of construction and doesn't do much
 exccnn_add_test(test_optimizer LIBRARIES cnnlib)
 
 # test_rand: test the stdlib.h rand() function

@@ -1,37 +1,59 @@
 #include "functions.hpp"
 
-#include <cmath>
 #include <algorithm>
-#include <numeric>
-#include <stdexcept>
+#include <cmath>
 #include <iostream>
 #include <limits>
+#include <map>
+#include <numeric>
 #include <random>
+#include <stdexcept>
+#include <string_view>
+#include <vector>
 
 namespace cnn {
 
-cnn::real_type linear(const cnn::real_type x){
+real_type linear(const real_type x)
+{
 	return x;
 }
 
-cnn::real_type derivative_linear(const cnn::real_type x){
+real_type derivative_linear(const real_type /*x*/)
+{
 	return 1;
 }
 
-cnn::real_type sigmoid(const cnn::real_type x){
-	return 1./(1. + exp(-x));
+real_type sigmoid(const real_type x)
+{
+	return 1 / (1 + std::exp(-x));
 }
 
-cnn::real_type derivative_sigmoid(const cnn::real_type x){
-	return sigmoid(x)*(1. - sigmoid(x));
+real_type derivative_sigmoid(const real_type x)
+{
+	return sigmoid(x) * (real_type{1} - sigmoid(x));
 }
 
-cnn::real_type relu(const cnn::real_type x) {
-	return std::max(static_cast<real_type>(0.0), x);
+real_type relu(const real_type x)
+{
+	return std::max(real_type{}, x);
 }
 
-cnn::real_type derivative_relu(const cnn::real_type x) {
-	return x > 0.0 ? 1.0 : 0.0;
+real_type derivative_relu(const real_type x)
+{
+	return x > real_type{} ? real_type{1} : real_type{};
+}
+
+activation get_activation(std::string_view name)
+{
+#define EXCCNN_ACTIVATION_MAP_ENTRY(name) {#name, {name, derivative_ ## name}}
+    static std::map<std::string_view, activation> map{
+        EXCCNN_ACTIVATION_MAP_ENTRY(linear),
+        EXCCNN_ACTIVATION_MAP_ENTRY(sigmoid),
+        EXCCNN_ACTIVATION_MAP_ENTRY(relu),
+        EXCCNN_ACTIVATION_MAP_ENTRY(softmax)
+    };
+#undef EXCCNN_ACTIVATION_MAP_ENTRY
+    return map.at(name);
 }
 
 cnn::real_type cross_entropy_loss(const std::vector<cnn::real_type>& predicted,
@@ -303,6 +325,35 @@ std::vector<std::vector<real_type>> orthogonal_init(int rows, int cols) {
     }
 
     return Q;
+}
+
+namespace {
+
+// huber loss with defaulted delta due to fixed function pointer type
+real_type huber_loss_(
+    const std::vector<real_type>& predicted,
+    const std::vector<real_type>& target)
+{
+    return huber_loss(predicted, target);
+}
+
+}  // namespace
+
+inner_product_real_function get_cost_function(std::string_view name)
+{
+#define EXCCNN_COST_MAP_ENTRY(name) {#name, name}
+    static std::map<std::string_view, inner_product_real_function> map{
+        EXCCNN_COST_MAP_ENTRY(cross_entropy_loss),
+        EXCCNN_COST_MAP_ENTRY(mse_loss),
+        EXCCNN_COST_MAP_ENTRY(mae_loss),
+        // note: special treatment for huber_loss due to default arguments
+        {"huber_loss", huber_loss_},
+        EXCCNN_COST_MAP_ENTRY(binary_cross_entropy_loss),
+        EXCCNN_COST_MAP_ENTRY(hinge_loss),
+        EXCCNN_COST_MAP_ENTRY(kl_divergence_loss)
+    };
+#undef EXCCNN_COST_MAP_ENTRY
+    return map.at(name);
 }
 
 }  // namespace cnn

@@ -1,45 +1,27 @@
 #ifndef WEIGHTS_HPP
 #define WEIGHTS_HPP
 
-#include "yml_oarchive.hpp"
-#include "yml_iarchive.hpp"
-
-#include <boost/serialization/vector.hpp>
-#include <boost/serialization/utility.hpp> // serialize pair
-#include <boost/serialization/array.hpp>
-#include <boost/serialization/set.hpp>
-#include <boost/serialization/optional.hpp> // serialize boost::optional
-
-#include <boost/archive/text_oarchive.hpp>
-#include <boost/archive/text_iarchive.hpp>
-#include <boost/serialization/unordered_map.hpp>
-
-#include <boost/numeric/ublas/matrix.hpp>
-#include <boost/numeric/ublas/io.hpp>
-#include <vector>
+#include <algorithm>
+#include <cmath>
 #include <fstream>
-#include <unordered_map>
+#include <iomanip>
+#include <iostream>
+#include <limits>
+#include <numeric>
+#include <vector>
 
-#include <stdio.h> 
-#include <stdlib.h> 
-#include <cassert>
+#include <boost/archive/text_iarchive.hpp>
+#include <boost/archive/text_oarchive.hpp>
+#include <boost/serialization/access.hpp>
+#include <boost/serialization/nvp.hpp>
+#include <boost/serialization/unordered_map.hpp>
+#include <boost/serialization/vector.hpp>
 
 #include "typedef.hpp"
 #include "connector.hpp"
 #include "sparse_array.hpp"
 
-#include <iostream>
-#include <iomanip>
-#include <algorithm>
-#include <vector>
-#include <numeric>
-#include <cmath>
-#include <limits>
-#define NVP(a) BOOST_SERIALIZATION_NVP(a)
-
-using namespace boost::numeric::ublas;
-
-namespace cnn{
+namespace cnn {
 
 struct WeightStats {
     double mean;
@@ -50,20 +32,21 @@ struct WeightStats {
     size_t count;
 };
 
-class Weights{
+class Weights {
+public:
+  // TODO: can be private if Weights has operator[] and iterator support
+  sparse_array<Connector> w;
+
+private:
+  friend class boost::serialization::access;
+
+  template <typename Ar>
+  void serialize(Ar& ar, unsigned /*version*/)
+  {
+    ar & BOOST_SERIALIZATION_NVP(w);
+  }
 
 public:
-  sparse_array<cnn::Connector> w;
-
-	template<class Ar>
-	void serialize(Ar& ar, unsigned){
-    //for (const auto& [key, value] : w){
-		//	for (int n : key)
-    //    ar & NVP( n);
-    //  ar & NVP( value );
-    //}
-    ar & NVP(w);
-	}
 	bool operator==(Weights const& w_) const{return w_.w.size() == w.size();}
 
 	void save(const std::string& filename) {
@@ -90,7 +73,7 @@ public:
   }
 
   WeightStats calculate_weight_statistics() const {
-    WeightStats stats{0.0, 0.0, 0.0, std::numeric_limits<double>::max(), 
+    WeightStats stats{0.0, 0.0, 0.0, std::numeric_limits<double>::max(),
                      -std::numeric_limits<double>::max(), 0};
     std::vector<double> all_weights;
     all_weights.reserve(w.size());
@@ -131,7 +114,7 @@ public:
         sum_squared_diff += diff * diff;
     }
     stats.stddev = std::sqrt(sum_squared_diff / n);
-    
+
     stats.count = n;
 
     return stats;
@@ -148,10 +131,8 @@ public:
               << "  Median: " << std::fixed << std::setprecision(6) << stats.median << "\n"
               << "  StdDev: " << std::fixed << std::setprecision(6) << stats.stddev << "\n";
   }
-
-private:
 };
 
-};
+}  // namespace cnn
 
-#endif
+#endif  // WEIGHTS_HPP

@@ -1,56 +1,93 @@
 #ifndef NN_HPP
 #define NN_HPP
 
-#include "yml_oarchive.hpp"
-#include "yml_iarchive.hpp"
-
-#include <boost/serialization/vector.hpp>
-#include <boost/serialization/utility.hpp> // serialize pair
-#include <boost/serialization/array.hpp>
-#include <boost/serialization/set.hpp>
-#include <boost/serialization/optional.hpp> // serialize boost::optional
-
-#include <boost/archive/text_oarchive.hpp>
-#include <boost/archive/text_iarchive.hpp>
-#include <boost/serialization/unordered_map.hpp>
-
-#include <boost/numeric/ublas/matrix.hpp>
-#include <boost/numeric/ublas/io.hpp>
-#include <vector>
-#include <fstream>
-#include <unordered_map>
 #include <algorithm>
+#include <cstdio>
+#include <iostream>
+#include <string>
+#include <vector>
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <cassert>
+#include <boost/serialization/access.hpp>
+#include <boost/serialization/nvp.hpp>
+#include <boost/serialization/split_member.hpp>
+#include <boost/serialization/vector.hpp>
 
 #include "typedef.hpp"
 #include "connector.hpp"
+#include "functions.hpp"
+#include "layer.hpp"
+#include "optimizer.hpp"
 #include "sparse_array.hpp"
+#include "weights.hpp"
 
-#define NVP(a) BOOST_SERIALIZATION_NVP(a)
-
-using namespace boost::numeric::ublas;
-
-namespace cnn{
+namespace cnn {
 
 // A basic neural network base class, it must be extended with customized
 // initialize method
-class NeuralNetwork{
+class NeuralNetwork {
+public:
+  // TODO: these members should be private
+  int n_layers{};
+  Layer expected;
+  std::vector<Layer> layers;
+  Weights weights;
+  int_type epoch_frequency{};
+
+private:
+  std::string cost_function_name_;               // cost function name
+  inner_product_real_function cost_function_{};  // cost function
+
+  // enable save/load access
+  friend class boost::serialization::access;
+
+  /**
+   * Boost serialization function.
+   *
+   * This serializes all the public members and the cost function name.
+   *
+   * @tparam Ar Boost.Serialization output archive
+   *
+   * @param ar Output archive
+   */
+  template <typename Ar>
+  void save(Ar& ar, unsigned /*version*/) const
+  {
+    ar &
+      BOOST_SERIALIZATION_NVP(n_layers) &
+      BOOST_SERIALIZATION_NVP(expected) &
+      BOOST_SERIALIZATION_NVP(layers) &
+      BOOST_SERIALIZATION_NVP(weights) &
+      BOOST_SERIALIZATION_NVP(epoch_frequency) &
+      boost::serialization::make_nvp("cost_function", cost_function_name_);
+  }
+
+  /**
+   * Boost de-serialiation function.
+   *
+   * This retrieves the cost function from the serialized string name.
+   *
+   * @tparam Ar Boost.Serialization input type
+   *
+   * @param ar Input archive
+   */
+  template <typename Ar>
+  void load(Ar& ar, unsigned /*version*/)
+  {
+    ar &
+      BOOST_SERIALIZATION_NVP(n_layers) &
+      BOOST_SERIALIZATION_NVP(expected) &
+      BOOST_SERIALIZATION_NVP(layers) &
+      BOOST_SERIALIZATION_NVP(weights) &
+      BOOST_SERIALIZATION_NVP(epoch_frequency) &
+      boost::serialization::make_nvp("cost_function", cost_function_name_);
+    // load cost function from name
+    cost_function_ = get_cost_function(cost_function_name_);
+  }
+
+  // implement serialize()
+  BOOST_SERIALIZATION_SPLIT_MEMBER()
 
 public:
-  int n_layers;
-	cnn::Layer expected;
-	std::vector< cnn::Layer > layers;
-  cnn::Weights weights;
-  int_type epoch_frequency;
-  cnn::CostFunctionPointer cost_function;
-
-	template<class Ar>
-	void serialize(Ar& ar, unsigned){
-		ar & NVP(n_layers) & NVP(expected) & NVP(layers) & NVP(weights) & NVP(epoch_frequency);
-	}
 	bool operator==(NeuralNetwork const& nn_) const{
     return nn_.n_layers==n_layers
         && nn_.layers  == layers;
@@ -74,6 +111,46 @@ public:
   }
 
   virtual bool initialize() = 0; // Pure virtual function so this class must be extended.
+
+  /**
+   * Return the cost function name.
+   *
+   * If the name is the empty string then no cost function has been set.
+   */
+  auto& cost_function_name() const noexcept { return cost_function_name_; }
+
+  /**
+   * Return the cost function pointer.
+   *
+   * If the function pointer is `nullptr` then no const function has been set.
+   */
+  auto cost_function() const noexcept { return cost_function_; }
+
+  /**
+   * Set the cost function.
+   *
+   * This function should be called from `initialize()` to set the neural
+   * network's cost function and is the only supported method for setting the
+   * cost function, i.e. do not attempt to set the name + function separately.
+   *
+   * @param name Cost function name, e.g. `"mse_loss"`, `"huber_loss"`, etc.
+   */
+  auto& cost_function(std::string name)
+  {
+    cost_function_name_ = std::move(name);
+    cost_function_ = get_cost_function(cost_function_name_);
+    return *this;
+  }
+
+  /**
+   * Set the layer activation function and derivative.
+   *
+   * @param name Activation function name, e.g. `"relu"`, `"linear"`
+   */
+  void set_optimizer(std::string name)
+  {
+    set_optimizer(optimizer{std::move(name)});
+  }
 
 	void set_optimizer(const optimizer & o){
 #ifdef DEBUG
@@ -129,7 +206,7 @@ public:
       //delta[j] = 2*(layers[1][j]-expected[j])*sigmoid(layers[1][j])*(1 - sigmoid(layers[1][j]));
       delta[j] = (layers[n_layers-1][j]-expected[j]);
 #ifdef DEBUG
-      printf("l=%d, j=%d: %f %f delta[j]=%f\n", n_layers-1, j, layers[n_layers-1][j], expected[j], delta[j]);
+      std::printf("l=%d, j=%d: %f %f delta[j]=%f\n", n_layers-1, j, layers[n_layers-1][j], expected[j], delta[j]);
 #endif
     }
 
@@ -150,7 +227,7 @@ public:
     std::cout << "expected = " << expected << std::endl;
     std::cout << "layers.back().values() = " << layers.back() << std::endl;
 #endif
-    cnn::real_type mse = cost_function(layers.back().values(), expected.values());
+    cnn::real_type mse = cost_function_(layers.back().values(), expected.values());
     if(epoch_frequency < 100)
       epoch_frequency = 100;
     while(mse > threshold and iter < max_iter){
@@ -254,9 +331,8 @@ public:
         std::cout << "Weights reinitialized" << std::endl;
 #endif
     }
-
 };
 
-};
+}  // namespace cnn
 
-#endif
+#endif  // NN_HPP

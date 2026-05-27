@@ -1,47 +1,39 @@
 #ifndef CONNECTION_HPP
 #define CONNECTION_HPP
 
-#include "yml_oarchive.hpp"
-#include "yml_iarchive.hpp"
-
-#include <boost/serialization/vector.hpp>
-#include <boost/serialization/utility.hpp> // serialize pair
-#include <boost/serialization/array.hpp>
-#include <boost/serialization/set.hpp>
-#include <boost/serialization/optional.hpp> // serialize boost::optional
-
-#include <boost/numeric/ublas/matrix.hpp>
-#include <boost/numeric/ublas/io.hpp>
 #include <vector>
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <cassert>
+#include <boost/serialization/access.hpp>
+#include <boost/serialization/nvp.hpp>
+#include <boost/serialization/vector.hpp>
 
 #include "typedef.hpp"
 #include "connector.hpp"
 
-#define NVP(a) BOOST_SERIALIZATION_NVP(a)
+namespace cnn {
 
-using namespace boost::numeric::ublas;
-
-namespace cnn{
-
-class Connection{
-
+class Connection {
 public:
+  // TODO: can be private if Connector has operator[] and iterator support
   std::vector<cnn::Connector> weights;
 
-  friend std::ostream & operator << (std::ostream & stream, const Connection & con_);
-	template<class Ar>
-	void serialize(Ar& ar, unsigned){
-		ar & NVP(weights);
-	}
-  bool operator == (Connection const & con_) const { return con_.weights.size() == weights.size() ; }
+private:
+  friend class boost::serialization::access;
 
-  Connection(){
-
+  template <typename Ar>
+  void serialize(Ar& ar, unsigned /*version*/)
+  {
+    ar & BOOST_SERIALIZATION_NVP(weights);
   }
+
+public:
+  // TODO: compare Connectors as well
+  bool operator==(Connection const & con_) const
+  {
+    return con_.weights.size() == weights.size();
+  }
+
+  Connection() = default;
 
   Connection(const std::vector<cnn::Connector> & _weights){
      weights = _weights;
@@ -63,11 +55,8 @@ public:
     const real_type & /*next*/) {
 
   }
-
-private:
 };
 
-};
+}  // namespace cnn
 
-#endif
-
+#endif  // CONNECTION_HPP

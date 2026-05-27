@@ -1,30 +1,16 @@
 // Test program to read a yaml file and generate a neural network accordingly
 
 #include "yml_oarchive.hpp"
-#include "yml_iarchive.hpp"
 
-#include <boost/serialization/vector.hpp>
-#include <boost/serialization/utility.hpp> // serialize pair
-#include <boost/serialization/array.hpp>
-#include <boost/serialization/set.hpp>
-#include <boost/serialization/optional.hpp> // serialize boost::optional
-
+#include <cstdlib>
 #include <fstream>
 #include <iostream>
-#include <string>
-#include <vector>
-#include <cmath>
 
-#include "typedef.hpp"
-#include "connection.hpp"
+#include "connector.hpp"
 #include "functions.hpp"
-#include "neuron.hpp"
 #include "layer.hpp"
-#include "utils.hpp"
-#include "weights.hpp"
 #include "nn.hpp"
-
-#define NVP(a) BOOST_SERIALIZATION_NVP(a)
+#include "sparse_array.hpp"
 
 class simple_neural_network : public cnn::NeuralNetwork {
 
@@ -62,7 +48,7 @@ bool simple_neural_network::initialize() {
 	}
 
   // MSE loss
-  cost_function = cnn::mse_loss;
+  cost_function("mse_loss");
 
   std::cout << "input: " << layers[0];
   std::cout << "output: " << layers[1];
@@ -72,18 +58,15 @@ bool simple_neural_network::initialize() {
 
 }
 
-int main(){
-
+int main()
+{
 	simple_neural_network nn;
 	nn.initialize();
   nn.update();
-
 	{
 		std::ofstream ofs{"trained2.yml"};
 		boost::archive::yml_oarchive yoa{ofs};
-		yoa
-			<< NVP(nn)
-		;
+		yoa << BOOST_SERIALIZATION_NVP(nn);
 	}
-
+  return EXIT_SUCCESS;
 }

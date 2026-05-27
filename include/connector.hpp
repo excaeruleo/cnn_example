@@ -1,42 +1,27 @@
 #ifndef CONNECTOR_HPP
 #define CONNECTOR_HPP
 
-#include "yml_oarchive.hpp"
-#include "yml_iarchive.hpp"
-
-#include <boost/serialization/vector.hpp>
-#include <boost/serialization/utility.hpp> // serialize pair
-#include <boost/serialization/array.hpp>
-#include <boost/serialization/set.hpp>
-#include <boost/serialization/optional.hpp> // serialize boost::optional
-
-#include <boost/numeric/ublas/matrix.hpp>
-#include <boost/numeric/ublas/io.hpp>
+#include <algorithm>
+#include <cmath>
+#include <ostream>
 #include <vector>
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <cassert>
-#include <cmath>
+#include <boost/serialization/access.hpp>
+#include <boost/serialization/nvp.hpp>
 
 #include "typedef.hpp"
 #include "functions.hpp"
 
-#define NVP(a) BOOST_SERIALIZATION_NVP(a)
+namespace cnn {
 
-using namespace boost::numeric::ublas;
-
-namespace cnn{
-
-  enum class InitType {
-      KAIMING,
-      XAVIER,
-      ORTHOGONAL
-  };
+enum class InitType {
+  KAIMING,
+  XAVIER,
+  ORTHOGONAL
+};
 
 // Connector stores the weight information and information to update weight
-class Connector{
-
+class Connector {
 public:
   // next layer number: l
   int layer;
@@ -58,16 +43,30 @@ public:
   // for lr adjustment
   real_type old_gradient;
   int_type  iter;
+
 private:
   InitType init_type;
-  static std::vector<std::vector<real_type>> orthogonal_matrix;
-  static int orthogonal_matrix_index;
+  static inline std::vector<std::vector<real_type>> orthogonal_matrix;
+  static inline int orthogonal_matrix_index = 0;
+
+private:
+  friend class boost::serialization::access;
+
+  template <typename Ar>
+  void serialize(Ar& ar, unsigned /*version*/)
+  {
+    ar &
+      BOOST_SERIALIZATION_NVP(layer) &
+      BOOST_SERIALIZATION_NVP(input_index) &
+      BOOST_SERIALIZATION_NVP(output_index) &
+      BOOST_SERIALIZATION_NVP(weight) &
+      BOOST_SERIALIZATION_NVP(bias) &
+      BOOST_SERIALIZATION_NVP(learning_rate) &
+      BOOST_SERIALIZATION_NVP(momentum) &
+      BOOST_SERIALIZATION_NVP(decay);
+  }
 
 public:
-  template<class Ar>
-  void serialize(Ar& ar, unsigned){
-    ar & NVP(layer) & NVP(input_index) & NVP(output_index) & NVP(weight) & NVP(bias) & NVP(learning_rate) & NVP(momentum) & NVP(decay);
-  }
   bool operator==(Connector const& c_) const{
    return c_.weight        == weight
        && c_.layer         == layer
@@ -166,13 +165,12 @@ public:
   }
 
   // ostream operator
-  friend std::ostream& operator<< (std::ostream& stream, const Connector & n) {
-
-    std::cout << "(" << n.layer << "," << n.input_index << "," << n.output_index <<  "): "
-              << n.weight << ' ' << n.bias << ' '
-              << n.learning_rate << ' ' << n.momentum  << std::endl;
-
-    return stream;
+  friend std::ostream& operator<<(std::ostream& out, const Connector& n)
+  {
+    return out <<
+      "(" << n.layer << "," << n.input_index << "," << n.output_index <<  "): "
+      << n.weight << ' ' << n.bias << ' ' << n.learning_rate << ' ' <<
+      n.momentum  << "\n";
   }
 
 private:
@@ -190,11 +188,6 @@ private:
   }
 };
 
-// Initialize static members
-std::vector<std::vector<real_type>> Connector::orthogonal_matrix;
-int Connector::orthogonal_matrix_index = 0;
+}  // namespace cnn
 
-};
-
-#endif
-
+#endif  // CONNECTOR_HPP

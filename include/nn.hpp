@@ -1,16 +1,16 @@
 #ifndef NN_HPP
 #define NN_HPP
 
-#include <boost/serialization/access.hpp>
-#include <boost/serialization/nvp.hpp>
-#include <boost/serialization/split_member.hpp>
-#include <boost/serialization/vector.hpp>
-
 #include <algorithm>
 #include <cstdio>
 #include <iostream>
 #include <string>
 #include <vector>
+
+#include <boost/serialization/access.hpp>
+#include <boost/serialization/nvp.hpp>
+#include <boost/serialization/split_member.hpp>
+#include <boost/serialization/vector.hpp>
 
 #include "typedef.hpp"
 #include "connector.hpp"

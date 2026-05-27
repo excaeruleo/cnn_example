@@ -1,38 +1,27 @@
 // Test program to read a yaml file and generate a neural network accordingly
 
-#include "yml_oarchive.hpp"
-#include "yml_iarchive.hpp"
-
-#include <boost/serialization/vector.hpp>
-#include <boost/serialization/utility.hpp> // serialize pair
-#include <boost/serialization/array.hpp>
-#include <boost/serialization/set.hpp>
-#include <boost/serialization/optional.hpp> // serialize boost::optional
-
 #include <fstream>
-#include <iostream>
-#include <string>
-#include <vector>
-#include <cmath>
 #include <iomanip>
+#include <iostream>
 #include <numeric>
 #include <random>
+#include <string>
+#include <vector>
+
+#include <boost/serialization/nvp.hpp>
+#include "yml_iarchive.hpp"
+#include "yml_oarchive.hpp"
 
 #include "typedef.hpp"
-#include "connection.hpp"
-#include "neuron.hpp"
+#include "connector.hpp"
 #include "layer.hpp"
-#include "utils.hpp"
-#include "weights.hpp"
-#include "nn.hpp"
 #include "mnist.hpp"
-#include "functions.hpp"
-#include "optimizer.hpp"
+#include "nn.hpp"
 
+// convenience macro
 #define NVP(a) BOOST_SERIALIZATION_NVP(a)
 
-class simple_neural_network : public cnn::NeuralNetwork{
-
+class simple_neural_network : public cnn::NeuralNetwork {
 public:
   bool initialize();
   bool reset_input(const std::vector<std::vector<cnn::real_type>> & input, const int index);
@@ -200,8 +189,8 @@ int main(int argc, char* argv[]) {
             boost::archive::yml_iarchive yia{ifs};
             yia >> NVP(nn);
         }
-        //nn.set_optimizer(cnn::optimizer("sigmoid", cnn::sigmoid, cnn::derivative_sigmoid));
-        //nn.set_optimizer(cnn::optimizer("relu", cnn::relu, cnn::derivative_relu));
+        //nn.set_optimizer("sigmoid");
+        //nn.set_optimizer("relu");
 
         for(cnn::int_type idx = 0; idx < pixelValues.size(); idx++){
             std::cout << "Processing image #" << idx << std::endl;

@@ -1,37 +1,24 @@
-#include <yml_oarchive.hpp>
-#include <yml_iarchive.hpp>
-
-#include <boost/serialization/vector.hpp>
-#include <boost/serialization/utility.hpp>
-#include <boost/serialization/array.hpp>
-#include <boost/serialization/set.hpp>
-#include <boost/serialization/optional.hpp>
-
+#include <cstdlib>
 #include <fstream>
 #include <iostream>
-#include <string>
-#include <vector>
-#include <cmath>
+
+#include <boost/serialization/nvp.hpp>
+#include "yml_oarchive.hpp"
 
 #include "typedef.hpp"
-#include "connection.hpp"
+#include "connector.hpp"
 #include "functions.hpp"
-#include "neuron.hpp"
 #include "layer.hpp"
-#include "utils.hpp"
-#include "weights.hpp"
 #include "nn.hpp"
+#include "sparse_array.hpp"
 
-#define NVP(a) BOOST_SERIALIZATION_NVP(a)
-
-class simple_neural_network : public cnn::NeuralNetwork{
-
+class simple_neural_network : public cnn::NeuralNetwork {
 public:
   bool initialize() override;
-
 };
 
-bool simple_neural_network::initialize(){
+bool simple_neural_network::initialize()
+{
   n_layers = 2;
 
   cnn::Layer input_layer = cnn::Layer(5);
@@ -72,18 +59,15 @@ bool simple_neural_network::initialize(){
 
 }
 
-int main() {
-
+int main()
+{
   simple_neural_network nn;
   nn.initialize();
   nn.update();
-
   {
     std::ofstream ofs{"trained3.yml"};
     boost::archive::yml_oarchive yoa{ofs};
-    yoa
-      << NVP(nn)
-    ;
+    yoa << BOOST_SERIALIZATION_NVP(nn);
   }
-
+  return EXIT_SUCCESS;
 }

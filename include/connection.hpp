@@ -20,11 +20,11 @@ public:
 private:
   friend class boost::serialization::access;
 
-	template <typename Ar>
-	void serialize(Ar& ar, unsigned /*version*/)
+  template <typename Ar>
+  void serialize(Ar& ar, unsigned /*version*/)
   {
-		ar & BOOST_SERIALIZATION_NVP(weights);
-	}
+    ar & BOOST_SERIALIZATION_NVP(weights);
+  }
 
 public:
   // TODO: compare Connectors as well

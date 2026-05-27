@@ -19,7 +19,7 @@ public:
   friend std::ostream& operator<<(std::ostream& out, const Neuron& n)
   {
     // TODO: maybe consider not writing a newline
-		return out << " : value = " << n.value << "\n";
+    return out << " : value = " << n.value << "\n";
   }
 
   /**
@@ -35,10 +35,10 @@ private:
   friend boost::serialization::access;
 
   template <typename Ar>
-	void serialize(Ar& ar, unsigned /*version*/)
+  void serialize(Ar& ar, unsigned /*version*/)
   {
-		ar & BOOST_SERIALIZATION_NVP(value);
-	}
+    ar & BOOST_SERIALIZATION_NVP(value);
+  }
 };
 
 }  // namespace cnn

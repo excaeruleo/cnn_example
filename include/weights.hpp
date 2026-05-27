@@ -40,11 +40,11 @@ public:
 private:
   friend class boost::serialization::access;
 
-	template <typename Ar>
-	void serialize(Ar& ar, unsigned /*version*/)
+  template <typename Ar>
+  void serialize(Ar& ar, unsigned /*version*/)
   {
     ar & BOOST_SERIALIZATION_NVP(w);
-	}
+  }
 
 public:
 	bool operator==(Weights const& w_) const{return w_.w.size() == w.size();}

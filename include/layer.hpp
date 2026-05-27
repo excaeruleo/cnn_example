@@ -36,9 +36,9 @@ private:
   friend class boost::serialization::access;
 
   template <typename Ar>
-	void serialize(Ar& ar, unsigned /*version*/)
+  void serialize(Ar& ar, unsigned /*version*/)
   {
-		ar &
+    ar &
       BOOST_SERIALIZATION_NVP(layer_type) &
       BOOST_SERIALIZATION_NVP(layer_name) &
       BOOST_SERIALIZATION_NVP(layer_size) &
@@ -46,10 +46,10 @@ private:
       BOOST_SERIALIZATION_NVP(delta) &
       BOOST_SERIALIZATION_NVP(layer_optimizer);
     //neurons.resize(layer_size);
-	}
+  }
 
 public:
-	bool operator==(Layer const& l_) const
+  bool operator==(Layer const& l_) const
   {
     return l_.layer_type==this->layer_type
         && l_.layer_name == this->layer_name
@@ -94,11 +94,11 @@ public:
   // ostream operator
   friend std::ostream& operator<< (std::ostream& out, const Layer& layer)
   {
-		out <<
+    out <<
       layer.layer_name << " : layer_type = " << layer.layer_type << "\n" <<
       "layer_optimizer = " << layer.layer_optimizer << "\n";
-		for (auto i = 0u; i < layer.neurons.size(); i++)
-			out << "layer[" << i << "]" << layer.neurons[i];
+    for (auto i = 0u; i < layer.neurons.size(); i++)
+      out << "layer[" << i << "]" << layer.neurons[i];
     return out;
   }
 

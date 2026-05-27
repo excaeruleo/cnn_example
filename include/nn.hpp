@@ -26,18 +26,16 @@ namespace cnn {
 // initialize method
 class NeuralNetwork {
 public:
-  //////////////////////////////////////////////////////////////////////////////
   // TODO: these members should be private
   int n_layers{};
-	Layer expected;
-	std::vector<Layer> layers;
+  Layer expected;
+  std::vector<Layer> layers;
   Weights weights;
   int_type epoch_frequency{};
 
 private:
   std::string cost_function_name_;               // cost function name
   inner_product_real_function cost_function_{};  // cost function
-  //////////////////////////////////////////////////////////////////////////////
 
   // enable save/load access
   friend class boost::serialization::access;
